@@ -1,0 +1,25 @@
+# Секреты
+.env
+.env.*
+!.env.example
+
+# Кэш ответов модели и временные файлы
+.cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Окружения
+.venv/
+venv/
+env/
+
+# Отчёты тестовых прогонов (финальный отчёт кладём в reports/ явно)
+reports/*.log
+!reports/README.md
+
+# ОС и редакторы
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

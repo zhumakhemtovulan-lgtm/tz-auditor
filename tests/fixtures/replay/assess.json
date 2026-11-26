@@ -1,0 +1,96 @@
+{
+ "assessments": [
+  {
+   "rid": "R-01",
+   "verdict": "ok",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ]
+  },
+  {
+   "rid": "R-04",
+   "verdict": "needs_fix",
+   "scores": [
+    {
+     "criterion": "VERIFIABLE",
+     "status": "issue",
+     "comment": "нет перцентиля"
+    }
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "requirement_ids": [
+    "R-04"
+   ],
+   "criterion": "VERIFIABLE",
+   "rule": "NFR-MEASURABLE",
+   "severity": "major",
+   "title": "Срок без перцентиля",
+   "description": "Не указана доля случаев.",
+   "quotes": [
+    "Сервис передает push в течение минуты после получения события"
+   ],
+   "impact": "Нельзя проверить.",
+   "recommendation": "Указать p95.",
+   "suggested_rewrite": "95% push передаются за 60 с."
+  },
+  {
+   "requirement_ids": [
+    "R-01"
+   ],
+   "criterion": "COMPLETE",
+   "severity": "minor",
+   "title": "Выдуманное",
+   "description": "x",
+   "quotes": [
+    "несуществующая цитата про лимиты"
+   ]
+  }
+ ]
+}

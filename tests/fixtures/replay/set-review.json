@@ -1,0 +1,53 @@
+{
+ "set_summary": "Набор содержит противоречия.",
+ "set_scores": [
+  {
+   "criterion": "SET_CONSISTENT",
+   "status": "issue",
+   "comment": "Ф-2 и КП-2"
+  }
+ ],
+ "findings": [
+  {
+   "requirement_ids": [
+    "R-02",
+    "R-05"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "FIN-CUTOFF",
+   "severity": "critical",
+   "title": "Разные правила отнесения к месяцу",
+   "description": "Ф-2 по дате совершения, КП-2 по дате проведения.",
+   "quotes": [
+    "Месяц определяется по дате совершения покупки в Алматы.",
+    "Февральский счётчик вырос на 4 000 ₸"
+   ],
+   "impact": "Разные результаты.",
+   "recommendation": "Выбрать одно правило."
+  },
+  {
+   "requirement_ids": [
+    "R-02"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "severity": "major",
+   "title": "Дубль",
+   "description": "то же самое",
+   "quotes": [
+    "Месяц определяется по дате совершения покупки в Алматы."
+   ]
+  }
+ ],
+ "scenarios": [
+  {
+   "scenario": "Покупка 31.01 23:58, проведена 01.02",
+   "rules_applied": [
+    "R-02",
+    "R-05"
+   ],
+   "outcome": "Ф-2: январь; КП-2: февраль",
+   "status": "conflict",
+   "note": ""
+  }
+ ]
+}

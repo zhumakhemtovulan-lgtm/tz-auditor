@@ -1,0 +1,23 @@
+{
+ "reviews": [
+  {
+   "fid": "P-01",
+   "verdict": "confirmed",
+   "severity": "major",
+   "note": "верно"
+  },
+  {
+   "fid": "P-02",
+   "verdict": "confirmed",
+   "severity": "critical",
+   "note": "верно"
+  },
+  {
+   "fid": "P-03",
+   "verdict": "rejected",
+   "severity": "major",
+   "duplicate_of": "P-02",
+   "note": ""
+  }
+ ]
+}

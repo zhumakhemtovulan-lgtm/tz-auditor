@@ -1,0 +1,14 @@
+# Эталонное ручное ревью (заполняет команда). Агент этот файл НЕ читает.
+# Скопируйте в gold.yaml и перечислите дефекты, которые вы нашли сами.
+# lines — номера строк в docs/requirements.md (в GitHub видны слева от текста).
+# severity — critical | major | minor (см. methodology/severity.md)
+
+- id: G-01
+  title: "Пример: срок без перцентиля и точки окончания"
+  lines: [46]
+  severity: major
+
+- id: G-02
+  title: "Пример: ..."
+  lines: []
+  severity: minor

@@ -1,0 +1,39 @@
+{
+ "questions": [
+  {
+   "priority": "high",
+   "question": "Какая дата относит покупку к месяцу?",
+   "why": "Ф-2 и КП-2 расходятся",
+   "options": [
+    "а) совершения",
+    "б) проведения"
+   ],
+   "finding_ids": [
+    "F-01"
+   ],
+   "requirement_ids": [
+    "R-02",
+    "R-05"
+   ],
+   "addressee": "Бизнес-владелец"
+  }
+ ],
+ "checklist": [
+  {
+   "item": "Требование может быть протестировано",
+   "status": "Частично",
+   "justification": "НФТ не измеримо",
+   "finding_ids": [
+    "F-02"
+   ]
+  }
+ ],
+ "verdict": {
+  "ready_for_development": "условно",
+  "ready_for_testing": "нет",
+  "summary": "Есть противоречие.",
+  "top_fixes": [
+   "Согласовать Ф-2 и КП-2 (F-01)"
+  ]
+ }
+}
