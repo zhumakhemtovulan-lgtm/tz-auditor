@@ -60,7 +60,11 @@ class LLMClient:
         if settings.provider == "gemini":
             from google import genai
 
-            self._client = genai.Client(api_key=settings.api_key)
+            from google.genai import types as _t
+
+            # Ограничение ожидания ответа: зависший запрос не держит прогон минутами.
+            self._client = genai.Client(api_key=settings.api_key,
+                                        http_options=_t.HttpOptions(timeout=180_000))
         elif settings.provider in {"openai", "ollama"}:
             from openai import OpenAI
 
@@ -237,7 +241,7 @@ class LLMClient:
                 if not retry:
                     raise LLMError(f"{step}: ошибка модели: {exc}") from exc
                 overloaded = code in (500, 502, 503, 504) or "unavailable" in msg or "high demand" in msg
-                if overloaded and attempt >= 2 and self._switch_model("перегружена (503)"):
+                if overloaded and attempt >= 1 and self._switch_model("перегружена (503)"):
                     attempt = 0
                     continue
                 wait = min(wait * (1.5 ** (attempt - 1)), 120)

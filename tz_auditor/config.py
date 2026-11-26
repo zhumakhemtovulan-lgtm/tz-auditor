@@ -71,7 +71,8 @@ def load_settings(env_file: str | None = None, provider: str | None = None,
     replay = os.getenv("REPLAY_DIR")
     fb_env = os.getenv("GEMINI_FALLBACK_MODELS" if prov == "gemini" else "LLM_FALLBACK_MODELS", "")
     if not fb_env and prov == "gemini":
-        fb_env = "gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-2.5-flash"
+        fb_env = ("gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-2.5-pro,"
+                  "gemini-3.5-flash-lite,gemini-3.1-flash-lite")
     fallbacks = [m.strip() for m in fb_env.split(",") if m.strip() and m.strip() != mdl]
     return Settings(
         provider=prov,
