@@ -439,7 +439,7 @@ class Auditor:
             document_sha256=doc.sha256, document_format=doc.fmt.upper(),
             run_started=started.strftime("%Y-%m-%d %H:%M:%S %Z"),
             run_finished=finished.strftime("%Y-%m-%d %H:%M:%S %Z"),
-            duration_sec=round(time.time() - t0, 1), provider=self.s.provider, model=self.s.model,
+            duration_sec=round(time.time() - t0, 1), provider=self.s.provider, model=self.llm.model_label(),
             agent_version=agent_version(), llm_calls=self.llm.usage.calls,
             tokens_in=self.llm.usage.tokens_in, tokens_out=self.llm.usage.tokens_out,
             cache_hits=self.llm.usage.cache_hits, warnings=doc.warnings + self.warnings,

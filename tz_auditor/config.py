@@ -21,6 +21,7 @@ class Settings:
     cache_dir: Path
     use_cache: bool
     replay_dir: Path | None = None
+    fallback_models: list[str] | None = None
 
 
 class ConfigError(Exception):
@@ -49,7 +50,7 @@ def load_settings(env_file: str | None = None, provider: str | None = None,
         key = os.getenv("GEMINI_API_KEY", "")
         if not key or key.startswith("your_"):
             raise ConfigError("GEMINI_API_KEY не задан в .env.")
-        mdl = model or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        mdl = model or os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
         base = ""
     elif prov == "openai":
         key = os.getenv("OPENAI_API_KEY", "")
@@ -68,6 +69,10 @@ def load_settings(env_file: str | None = None, provider: str | None = None,
         raise ConfigError(f"Неизвестный LLM_PROVIDER: {prov}. Варианты: gemini, openai, ollama.")
 
     replay = os.getenv("REPLAY_DIR")
+    fb_env = os.getenv("GEMINI_FALLBACK_MODELS" if prov == "gemini" else "LLM_FALLBACK_MODELS", "")
+    if not fb_env and prov == "gemini":
+        fb_env = "gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-2.5-flash"
+    fallbacks = [m.strip() for m in fb_env.split(",") if m.strip() and m.strip() != mdl]
     return Settings(
         provider=prov,
         model=mdl,
@@ -79,4 +84,5 @@ def load_settings(env_file: str | None = None, provider: str | None = None,
         cache_dir=Path(os.getenv("LLM_CACHE_DIR", ".cache/llm")),
         use_cache=use_cache,
         replay_dir=Path(replay) if replay else None,
+        fallback_models=fallbacks,
     )

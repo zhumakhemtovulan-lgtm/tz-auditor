@@ -54,6 +54,8 @@ class LLMClient:
         self.log = log
         self._last_call = 0.0
         self._current_step = ""
+        self.models_used: list[str] = [settings.model]
+        self._fallbacks = list(settings.fallback_models or [])
         self._client = None
         if settings.provider == "gemini":
             from google import genai
@@ -159,6 +161,21 @@ class LLMClient:
             return p.read_text("utf-8")
         raise LLMError(f"Неизвестный провайдер {self.s.provider}")
 
+    def model_label(self) -> str:
+        if len(self.models_used) == 1:
+            return self.models_used[0]
+        return " → ".join(self.models_used) + " (переключение на резервную модель)"
+
+    def _switch_model(self, reason: str) -> bool:
+        """Перейти на следующую резервную модель. Возвращает False, если резервных не осталось."""
+        if not self._fallbacks:
+            return False
+        old = self.s.model
+        self.s.model = self._fallbacks.pop(0)
+        self.models_used.append(self.s.model)
+        self.log(f"  ↪ модель {old} {reason}; переключаюсь на резервную {self.s.model}")
+        return True
+
     @staticmethod
     def _is_retryable(exc: Exception) -> tuple[bool, float]:
         code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
@@ -208,9 +225,21 @@ class LLMClient:
                 )
             except Exception as exc:  # noqa: BLE001
                 last_err = exc
+                code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+                msg = str(exc).lower()
+                if code == 404 or "not_found" in msg or "no longer available" in msg:
+                    if self._switch_model("недоступна (404)"):
+                        attempt = 0
+                        continue
+                    raise LLMError(f"{step}: модель {self.s.model} недоступна. Укажите другую в .env "
+                                   f"(GEMINI_MODEL). Ответ сервиса: {exc}") from exc
                 retry, wait = self._is_retryable(exc)
                 if not retry:
                     raise LLMError(f"{step}: ошибка модели: {exc}") from exc
+                overloaded = code in (500, 502, 503, 504) or "unavailable" in msg or "high demand" in msg
+                if overloaded and attempt >= 2 and self._switch_model("перегружена (503)"):
+                    attempt = 0
+                    continue
                 wait = min(wait * (1.5 ** (attempt - 1)), 120)
                 self.log(f"  · {step}: временная ошибка ({str(exc)[:120]}), повтор через {wait:.0f} с")
                 time.sleep(wait)
