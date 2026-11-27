@@ -1,0 +1,3 @@
+# Ответы автора ТЗ на уточняющие вопросы агента.
+# Впишите ответ в кавычках после номера вопроса и запустите:
+#   python -m tz_auditor.clarify reports/report_v3.json reports/report_v3.answers.yaml <новый отчёт>.md

@@ -157,11 +157,13 @@ class LLMClient:
             step = self._current_step
             if self.s.replay_dir is None:
                 raise LLMError("replay: не задан REPLAY_DIR")
-            p = self.s.replay_dir / f"{step}.json"
+            name = step
+            p = self.s.replay_dir / f"{name}.json"
+            while not p.exists() and "-" in name:
+                name = name.rsplit("-", 1)[0]
+                p = self.s.replay_dir / f"{name}.json"
             if not p.exists():
-                p = self.s.replay_dir / f"{step.rsplit('-', 1)[0]}.json"
-            if not p.exists():
-                raise LLMError(f"replay: нет файла {p}")
+                raise LLMError(f"replay: нет файла для шага {step}")
             return p.read_text("utf-8")
         raise LLMError(f"Неизвестный провайдер {self.s.provider}")
 

@@ -71,6 +71,7 @@ class Question(BaseModel):
     requirement_ids: list[str] = Field(default_factory=list)
     addressee: str = Field(default="Аналитик / автор ТЗ")
     answer: str = ""
+    round: int = 1
 
 
 class ChecklistItem(BaseModel):

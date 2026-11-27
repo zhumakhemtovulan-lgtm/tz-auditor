@@ -79,6 +79,13 @@ class Auditor:
         self.llm = LLMClient(settings, log=log)
         self.warnings: list[str] = []
         self.ac_all_match: set[str] = set()
+        self.passes = 1
+        self._tag = ""
+        self._variant = ""
+
+    def _call(self, step: str, system: str, user: str, validate=None):
+        """Вызов модели с учётом номера прохода (для двойной проверки)."""
+        return self.llm.complete_json(step + self._tag, system, user + self._variant, validate=validate)
 
     # ------------------------------------------------------------------ helpers
     def _doc_context(self, doc: Document) -> str:
@@ -169,7 +176,7 @@ class Auditor:
         for b in range(0, len(reqs), BATCH_SIZE):
             batch = reqs[b:b + BATCH_SIZE]
             batch_txt = _dump(batch, ["rid", "doc_id", "section", "kind", "quote", "lines"])
-            data = self.llm.complete_json(
+            data = self._call(
                 f"assess-{b // BATCH_SIZE + 1}", P.SYSTEM,
                 P.fill(P.ASSESS, batch=batch_txt, document=ctx, **common),
                 validate=lambda d: (_need(d, "assessments"), _need(d, "findings")),
@@ -291,7 +298,7 @@ class Auditor:
 
     def rules_pass(self, doc, reqs: list[Requirement]):
         """Явный проход по предметным правилам методики команды."""
-        data = self.llm.complete_json(
+        data = self._call(
             "rules-pass", P.SYSTEM,
             P.fill(P.RULES_PASS, domain=P.methodology("domain_rules.md"), severity=P.methodology("severity.md"),
                    requirements=_dump(reqs, ["rid", "doc_id", "kind", "summary"]), document=self._doc_context(doc)),
@@ -325,7 +332,7 @@ class Auditor:
         if len(frs) < 2:
             return []
         pairs = [{"a": a.rid, "b": b.rid} for i, a in enumerate(frs) for b in frs[i + 1:]]
-        data = self.llm.complete_json(
+        data = self._call(
             "pair-check", P.SYSTEM,
             P.fill(P.PAIR_CHECK, requirements=_dump(frs, ["rid", "doc_id", "quote"]),
                    pairs=json.dumps(pairs, ensure_ascii=False), document=self._doc_context(doc)),
@@ -378,7 +385,7 @@ class Auditor:
         return out
 
     def set_review(self, doc, reqs, known, signals):
-        data = self.llm.complete_json(
+        data = self._call(
             "set-review", P.SYSTEM,
             P.fill(P.SET_REVIEW, criteria=P.methodology("criteria.md"), domain=P.methodology("domain_rules.md"),
                    severity=P.methodology("severity.md"),
@@ -591,6 +598,8 @@ class Auditor:
         qa = []
         for q in questions:
             a = answers.get(q.qid, "").strip()
+            if not a:
+                continue
             q.answer = a
             if a:
                 qa.append({"qid": q.qid, "question": q.question, "answer": a, "finding_ids": q.finding_ids})
@@ -604,6 +613,40 @@ class Auditor:
             validate=lambda d: _need(d, "log"),
         )
         return [x for x in data.get("log", []) if isinstance(x, dict)]
+
+    def followup_questions(self, doc, open_findings, questions, clar_log, next_round: int):
+        """Следующий раунд уточнений: новые вопросы только по замечаниям, которые остались открытыми."""
+        if not open_findings:
+            return []
+        asked = [{"qid": q.qid, "question": q.question, "answer": q.answer} for q in questions]
+        follow = [c.get("follow_up") for c in clar_log if c.get("follow_up")]
+        data = self.llm.complete_json(
+            f"followup-{next_round}", P.SYSTEM,
+            P.fill(P.FOLLOWUP, questions_method=P.methodology("questions.md"),
+                   asked=json.dumps(asked, ensure_ascii=False, indent=1),
+                   follow=json.dumps(follow, ensure_ascii=False, indent=1),
+                   findings=_dump(open_findings, ["fid", "requirement_ids", "severity", "title", "description", "quotes"]),
+                   document=self._doc_context(doc)),
+            validate=lambda d: _need(d, "questions"),
+        )
+        out = []
+        start = len(questions)
+        order = {"high": 0, "medium": 1, "low": 2}
+        for q in data.get("questions", []):
+            try:
+                if isinstance(q.get("options"), str):
+                    q["options"] = [q["options"]]
+                if q.get("priority") not in order:
+                    q["priority"] = "medium"
+                item = Question.model_validate({k: v for k, v in q.items() if k in Question.model_fields and k != "answer"})
+                item.round = next_round
+                out.append(item)
+            except Exception:  # noqa: BLE001
+                continue
+        out.sort(key=lambda x: order[x.priority])
+        for i, q in enumerate(out, start + 1):
+            q.qid = f"Q-{i:02d}"
+        return out
 
     # ------------------------------------------------------------------ main
     def run(self, doc_path: str, answers: dict[str, str] | None = None, ask=None) -> tuple[AuditResult, Document]:
@@ -675,6 +718,30 @@ class Auditor:
             self.warnings.append(f"Шаг «проверка набора» не выполнен: {exc}.")
             self.log(f"  ! {self.warnings[-1]}")
             set_summary, set_scores, set_findings, scenarios = "", [], [], []
+
+        # Двойная проверка: второй независимый проход по шагам 4, 6, 7. Находки объединяются,
+        # дубли потом убирает критик. Повышает полноту ценой времени и лимита.
+        for n in range(2, self.passes + 1):
+            self.log(f"+ Проход {n}: повторная независимая проверка (шаги 4, 6, 7)")
+            self._tag = f"-p{n}"
+            self._variant = ("\n\nЭто повторная независимая проверка того же документа другим экспертом. "
+                             "Особенно внимательно ищи дефекты, которые легко пропустить: расхождения между "
+                             "описанием и названием, кодами и заголовками, типами полей, заголовками запроса, "
+                             "между разделами документа и его частями.")
+            try:
+                _, f4 = self.assess(doc, reqs, signals)
+                _, f6 = self.rules_pass(doc, reqs)
+                f6b = self.pair_check(doc, reqs)
+                _, _, f7, sc2 = self.set_review(doc, reqs, known + f4 + f6 + f6b, signals)
+                extra = f4 + f6 + f6b + f7 + self._scenario_findings(sc2, reqs)
+                known = known + f4 + f6 + f6b
+                set_findings = set_findings + f7 + self._scenario_findings(sc2, reqs)
+                self.log(f"  · проход {n}: замечаний {len(extra)} (дубли уберёт критик)")
+            except LLMError as exc:
+                self.warnings.append(f"Проход {n} не завершён: {exc}. Использованы результаты предыдущих проходов.")
+                self.log(f"  ! {self.warnings[-1]}")
+            finally:
+                self._tag, self._variant = "", ""
 
         scen_findings = self._scenario_findings(scenarios, reqs)
         if scen_findings:

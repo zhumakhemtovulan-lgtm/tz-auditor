@@ -73,6 +73,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--model", help="модель (по умолчанию из .env)")
     ap.add_argument("--no-cache", action="store_true", help="не использовать кэш ответов модели")
     ap.add_argument("--env", help="путь к .env (по умолчанию ./.env)")
+    ap.add_argument("--passes", type=int, default=1, choices=[1, 2, 3],
+                    help="число независимых проходов проверки (2 — выше полнота, вдвое дольше)")
     args = ap.parse_args(argv)
 
     out = Path(args.output)
@@ -91,6 +93,7 @@ def main(argv: list[str] | None = None) -> int:
         log(f"ТЗ-Аудитор: документ {args.input}, модель {settings.model} ({settings.provider})")
         answers = _load_answers(args.answers) if args.answers else None
         auditor = Auditor(settings, log=log)
+        auditor.passes = args.passes
         result, doc = auditor.run(args.input, answers=answers,
                                   ask=_ask_console if args.interactive else None)
         files = write_reports(result, doc, args.output)
