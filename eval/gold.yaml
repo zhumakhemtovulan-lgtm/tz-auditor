@@ -27,14 +27,14 @@
 - id: G-04
   title: "Нет связи возврата с исходной покупкой в модели данных"
   lines: [38, 49]
-  keywords: ["связ"]
+  keywords: ["связ", "doc-data", "parent"]
   severity: major
   verified: false
 
 - id: G-05
   title: "Не описано: новый порог ниже уже потраченной суммы / включение при превышенном пороге"
   lines: [37, 40]
-  keywords: ["выше", "превыш"]
+  keywords: ["выше", "превыш", "fin-state"]
   severity: major
   verified: false
 
@@ -55,7 +55,7 @@
 - id: G-08
   title: "Сохранение порога через HTTP GET"
   lines: [103, 104, 120]
-  keywords: ["get"]
+  keywords: ["get", "api-semantics"]
   severity: major
   verified: false
 
@@ -120,4 +120,11 @@
   lines: [52, 103]
   keywords: ["чтени", "description"]
   severity: major
+  verified: false
+
+- id: G-18
+  title: "Content-Type указан для запроса без тела (GET)"
+  lines: [147, 148]
+  keywords: ["content-type", "api-headers"]
+  severity: minor
   verified: false

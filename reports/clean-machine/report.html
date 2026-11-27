@@ -1,0 +1,1789 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Отчёт: Уведомление о расходах по карте</title><style>
+body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:1100px;margin:32px auto;padding:0 24px;
+color:#1d1d1f;line-height:1.55;font-size:15px}
+h1{font-size:26px;border-bottom:3px solid #0a7d55;padding-bottom:8px}h2{font-size:21px;margin-top:36px;
+border-bottom:1px solid #ddd;padding-bottom:4px;color:#0a5c40}h3{font-size:17px;margin-top:24px}h4{font-size:15px;
+margin:18px 0 6px;padding:6px 10px;background:#f3f6f5;border-left:4px solid #0a7d55}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px}th,td{border:1px solid #d5d9d8;padding:5px 7px;
+vertical-align:top}th{background:#eef3f1}blockquote{margin:6px 0 6px 0;padding:4px 12px;border-left:3px solid #c2cbc8;
+color:#333;background:#fafbfa}code{background:#f0f0f0;padding:1px 4px;border-radius:3px}
+@media print{body{margin:0;max-width:none;font-size:12px}h2{page-break-after:avoid}h4{page-break-after:avoid}}
+</style></head><body><h1>Отчёт о проверке требований: Уведомление о расходах по карте</h1>
+<blockquote>
+<p>Отчёт сформирован автоматически агентом <strong>ТЗ-Аудитор</strong> по результатам прогона. Каждое замечание подтверждено дословной цитатой из документа (проверено кодом) и просмотрено независимым шагом-критиком.</p>
+</blockquote>
+<h2>1. Паспорт прогона</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Поле</th>
+<th style="text-align: left;">Значение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Документ</td>
+<td style="text-align: left;">Уведомление о расходах по карте</td>
+</tr>
+<tr>
+<td style="text-align: left;">Файл</td>
+<td style="text-align: left;"><code>requirements.md</code> (MD)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Контрольная сумма SHA-256</td>
+<td style="text-align: left;"><code>e7dae55e5453a250…</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Дата и время прогона</td>
+<td style="text-align: left;">2026-11-27 15:40:45 Кызылорда (зима)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Длительность прогона</td>
+<td style="text-align: left;">724 с (12.1 мин)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Модель</td>
+<td style="text-align: left;">gemini-3.5-flash (провайдер: gemini)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Версия агента</td>
+<td style="text-align: left;">1.0.0 (вне git)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Обращений к модели</td>
+<td style="text-align: left;">14 (из кэша: 0)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Токены (вход / выход)</td>
+<td style="text-align: left;">133 041 / 42 440</td>
+</tr>
+<tr>
+<td style="text-align: left;">Методика</td>
+<td style="text-align: left;">ISO/IEC/IEEE 29148:2018 (5.2.5, 5.2.6), IEEE Std 830-1998 (4.3), предметные правила <code>methodology/</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Коротко.</strong> Требований: <strong>18</strong>. Подтверждённых замечаний: <strong>25</strong> (критичных 2, существенных 20, незначительных 3). Начинать разработку: <strong>нет</strong>, тестирование: <strong>нет</strong>. Уточняющих вопросов к автору: <strong>10</strong>.</p>
+<h2>Резюме для руководителя</h2>
+<p><strong>Начинать разработку:</strong> <strong>нельзя</strong>. <strong>Начинать тестирование:</strong> <strong>нельзя</strong>.</p>
+<p>Документ содержит два критических противоречия в ключевой бизнес-логике (определение месяца операции для расчёта бюджета и правила отправки push при изменении порога), а также существенные ошибки в спецификации REST API и информационной безопасности. Начинать разработку и тестирование до устранения дефектов нельзя, так как реализация приведет к некорректным финансовым расчетам и переделкам.</p>
+<p><strong>Главные дефекты:</strong></p>
+<ul>
+<li><strong>F-01</strong> (критичный, строки 38, 64): Противоречие между Ф-2 и критерием приемки по дате проведения</li>
+<li><strong>F-02</strong> (критичный, строки 39, 40): Конфликт правил лимита push в месяц и изменения настройки</li>
+</ul>
+<p><strong>Что нужно решить автору ТЗ:</strong></p>
+<ul>
+<li><strong>Q-01.</strong> По какому правилу определяется месяц отнесения операции к расходам: по дате совершения покупки в Алматы (п. Ф-2) или по дате проведения/клиринга операции (Критерий приёмки №2)?</li>
+<li><strong>Q-02.</strong> Отправляется ли повторный push в текущем месяце, если клиент изменил порог расходов, когда ранее по прежней настройке push уже отправлялся (п. Ф-3 заявляет «максимум один push в месяц», а п. Ф-4 — «независимо от истории предыдущей настройки»)?</li>
+<li><strong>Q-03.</strong> Каково поведение системы, если клиент включает уведомление или изменяет порог в середине месяца, когда его расходы уже равны новому порогу или превышают его (п. Ф-1, Ф-4)?</li>
+</ul>
+<p>Проверка заняла 12.1 мин; найдено 25 дефектов в 18 требованиях, каждый подтверждён цитатой с номером строки. Полный разбор — ниже.</p>
+<h2>2. Как агент нарезал требования</h2>
+<p>Идентификатор R-xx присвоен агентом. Если в документе номера не было, во второй колонке указано место в скобках, а цитата сохранена.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">ID в отчёте</th>
+<th style="text-align: left;">ID в документе</th>
+<th style="text-align: left;">Тип</th>
+<th style="text-align: left;">Где</th>
+<th style="text-align: left;">Краткая формулировка</th>
+<th style="text-align: left;">Цитата</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">R-01</td>
+<td style="text-align: left;">(Цель)</td>
+<td style="text-align: left;">цель</td>
+<td style="text-align: left;">строка 23</td>
+<td style="text-align: left;">Информирование клиента о достижении личного бюджета в момент покупки.</td>
+<td style="text-align: left;">«Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-02</td>
+<td style="text-align: left;">(UI)</td>
+<td style="text-align: left;">UI</td>
+<td style="text-align: left;">строка 29</td>
+<td style="text-align: left;">Состав элементов экрана настроек и отображение ошибки ввода.</td>
+<td style="text-align: left;">«Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При ошибке ввода сообщение появляется под…»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-03</td>
+<td style="text-align: left;">(Процесс)</td>
+<td style="text-align: left;">процесс</td>
+<td style="text-align: left;">строка 34</td>
+<td style="text-align: left;">Последовательность выполнения операций от покупки до отправки push.</td>
+<td style="text-align: left;">«Проведение покупки → пересчёт расходов → проверка порога → при достижении отправка push → завершение.»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-04</td>
+<td style="text-align: left;">Ф-1</td>
+<td style="text-align: left;">функциональное</td>
+<td style="text-align: left;">строка 37</td>
+<td style="text-align: left;">Правила задания порога расходов держателем активной карты KZT.</td>
+<td style="text-align: left;">«<em> </em><em>Ф-1.</em>* Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно. По умолчанию уведомление выключено.»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-05</td>
+<td style="text-align: left;">Ф-2</td>
+<td style="text-align: left;">функциональное</td>
+<td style="text-align: left;">строка 38</td>
+<td style="text-align: left;">Правила учёта проведённых покупок и возвратов в месячных расходах.</td>
+<td style="text-align: left;">«<em> </em><em>Ф-2.</em>* Месяц определяется по дате совершения покупки в Алматы. В расходы входят проведённые покупки. Возврат уменьшает расходы месяца исходной покупки. П…»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-06</td>
+<td style="text-align: left;">Ф-3</td>
+<td style="text-align: left;">функциональное</td>
+<td style="text-align: left;">строка 39</td>
+<td style="text-align: left;">Условия и лимит отправки push-уведомлений за календарный месяц.</td>
+<td style="text-align: left;">«<em> </em><em>Ф-3.</em>* Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push. На карту приходится максимум один такой push з…»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-07</td>
+<td style="text-align: left;">Ф-4</td>
+<td style="text-align: left;">функциональное</td>
+<td style="text-align: left;">строка 40</td>
+<td style="text-align: left;">Поведение системы при изменении порога накопленных расходов.</td>
+<td style="text-align: left;">«<em> </em><em>Ф-4.</em>* При изменении порога накопленная сумма сохраняется. Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущ…»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-08</td>
+<td style="text-align: left;">(Sequence Diagram)</td>
+<td style="text-align: left;">интеграция</td>
+<td style="text-align: left;">строка 43</td>
+<td style="text-align: left;">Взаимодействие сервисов при обработке покупки и достижении порога.</td>
+<td style="text-align: left;">«Процессинг → сервис расходов: проведена покупка. Сервис расходов → настройки: получить порог карты. Сервис расходов → push: передать последние четыре цифры к…»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-09</td>
+<td style="text-align: left;">(НФТ)</td>
+<td style="text-align: left;">нефункциональное</td>
+<td style="text-align: left;">строка 46</td>
+<td style="text-align: left;">Срок передачи push-уведомления на отправку после события.</td>
+<td style="text-align: left;">«Сервис передаёт push на отправку в течение минуты после получения события.»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-10</td>
+<td style="text-align: left;">(Данные)</td>
+<td style="text-align: left;">данные</td>
+<td style="text-align: left;">строка 49</td>
+<td style="text-align: left;">Перечень хранящихся атрибутов операций и настроек порога.</td>
+<td style="text-align: left;">«Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге.»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-11</td>
+<td style="text-align: left;">(Интеграция)</td>
+<td style="text-align: left;">интеграция</td>
+<td style="text-align: left;">строка 52</td>
+<td style="text-align: left;">Интеграция с REST API и требование к идемпотентности обработки событий.</td>
+<td style="text-align: left;">«Приложение читает и сохраняет настройки через дочерний документ «Уведомление о расходах по карте — REST API». Повторная доставка одного события процессинга с…»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-12</td>
+<td style="text-align: left;">(Критерий приёмки 1)</td>
+<td style="text-align: left;">критерий приёмки</td>
+<td style="text-align: left;">строка 63</td>
+<td style="text-align: left;">Проведение покупки до достижения порога вызывает отправку push.</td>
+<td style="text-align: left;">«| Расходы 48 500 ₸, порог 50 000 ₸ | Провести покупку на 1 500 ₸ | Итог 50 000 ₸ и один push |»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-13</td>
+<td style="text-align: left;">(Критерий приёмки 2)</td>
+<td style="text-align: left;">критерий приёмки</td>
+<td style="text-align: left;">строка 64</td>
+<td style="text-align: left;">Учёт даты проведения покупки по часовому поясу Алматы.</td>
+<td style="text-align: left;">«| Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸ |»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-14</td>
+<td style="text-align: left;">(Критерий приёмки 3)</td>
+<td style="text-align: left;">критерий приёмки</td>
+<td style="text-align: left;">строка 65</td>
+<td style="text-align: left;">Исключение денежных переводов из суммы месячных расходов.</td>
+<td style="text-align: left;">«| Расходы 19 900 ₸, порог 20 000 ₸ | Перевести 500 ₸ | Счётчик показывает 19 900 ₸ |»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-15</td>
+<td style="text-align: left;">(API Логика)</td>
+<td style="text-align: left;">API</td>
+<td style="text-align: left;">строки 117, 118, 119, 120, 121</td>
+<td style="text-align: left;">Шаги проверки сессии, карты, параметров и сохранения настройки в API.</td>
+<td style="text-align: left;">«1. Проверить пользовательскую сессию. 2. Проверить принадлежность карты клиенту. 3. Проверить сумму и переключатель. 4. Заменить настройку и вернуть результа…»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-16</td>
+<td style="text-align: left;">(API Правила)</td>
+<td style="text-align: left;">API</td>
+<td style="text-align: left;">строки 124, 125, 126</td>
+<td style="text-align: left;">Особые правила валидации порога и сохранения накопленных расходов.</td>
+<td style="text-align: left;">«1. Целое число тенге, обе границы включены. 2. Повторное сохранение заменяет действующую настройку. 3. Изменение порога сохраняет накопленные расходы.»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-17</td>
+<td style="text-align: left;">(API Параметры)</td>
+<td style="text-align: left;">API</td>
+<td style="text-align: left;">строки 142, 143, 144</td>
+<td style="text-align: left;">Определения query-параметров cardId, amount и enabled.</td>
+<td style="text-align: left;">«| <code>cardId</code> | string | 1–64 | Да | Карта клиента | Идентификатор карты | <code>card_id</code> | | <code>amount</code> | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | `l…»</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-18</td>
+<td style="text-align: left;">(API Ошибки)</td>
+<td style="text-align: left;">API</td>
+<td style="text-align: left;">строка 189</td>
+<td style="text-align: left;">Возврат ошибки 404 при запросе к чужой или отсутствующей карте.</td>
+<td style="text-align: left;">«Для чужой карты возвращается 404, как и для отсутствующей карты.»</td>
+</tr>
+</tbody>
+</table>
+<h2>3. Проверка каждого требования</h2>
+<p>Матрица оценки по свойствам отдельного требования (ISO/IEC/IEEE 29148, 5.2.5). ✓ — без замечаний, ✗ — есть замечание, — — неприменимо.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">ID</th>
+<th style="text-align: center;">Необх.</th>
+<th style="text-align: center;">Умест.</th>
+<th style="text-align: center;">Однозн.</th>
+<th style="text-align: center;">Полн.</th>
+<th style="text-align: center;">Един.</th>
+<th style="text-align: center;">Выполн.</th>
+<th style="text-align: center;">Провер.</th>
+<th style="text-align: center;">Корр.</th>
+<th style="text-align: center;">Шабл.</th>
+<th style="text-align: left;">Итог</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">R-01</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-02</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-03</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-04</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-05</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">блокер</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-06</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">блокер</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-07</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">блокер</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-08</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-09</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-10</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-11</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-12</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-13</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">блокер</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-14</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">в порядке</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-15</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-16</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">в порядке</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-17</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-18</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">исправить</td>
+</tr>
+</tbody>
+</table>
+<h3>Замечания по требованиям</h3>
+<h3>R-01 · (Цель): Информирование клиента о достижении личного бюджета в момент покупки.</h3>
+<blockquote>
+<p>«Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.» — <em>строка 23</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Однозначность</strong> — Формулировка «в момент покупки» не содержит точного временного критерия и противоречит нефункциональному требованию.; <strong>Проверяемость</strong> — Отсутствует измеримый SLA (перцентиль, время добегания push).; <strong>Соответствие шаблону</strong> — Отсутствует уникальный идентификатор требования.</p>
+<h4>F-03 · Существенный · Размытая формулировка «в момент покупки» в цели</h4>
+<ul>
+<li><strong>Требования:</strong> R-01 (Цель)</li>
+<li><strong>Критерий:</strong> Однозначность (<code>UNAMBIGUOUS</code>) · правило NFR-MEASURABLE</li>
+<li><strong>Где:</strong> строки 23, 46</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.» — <em>строка 23</em>
+«Сервис передаёт push на отправку в течение минуты после получения события.» — <em>строка 46</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Формулировка «в момент покупки» не содержит конкретного временного интервала и перцентиля, а также противоречит разделу нефункциональных требований, допускающему задержку передаче push до 1 минуты.</li>
+<li><strong>Чем опасно:</strong> Невозможно однозначно подтвердить выполнение цели на этапе QA-приемки.</li>
+<li><strong>Как исправить:</strong> Уточнить формулировку цели, соотнеся ее с NFR.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em>Дать клиенту возможность получать уведомление о достижении личного бюджета в течение [уточнить: 60] секунд после проведения покупки.</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (Разногласие между формулировкой в цели («в момент покупки») и НФТ («в течение минуты»).)</li>
+</ul>
+<h4>F-23 · Незначительный · Отсутствие идентификаторов у требований</h4>
+<ul>
+<li><strong>Требования:</strong> R-01 (Цель), R-02 (UI), R-03 (Процесс), R-08 (Sequence Diagram)</li>
+<li><strong>Критерий:</strong> Соответствие шаблону (<code>CONFORMING</code>)</li>
+<li><strong>Где:</strong> строки 23, 29</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.» — <em>строка 23</em>
+«Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При ошибке ввода сообщение появляется под полем.» — <em>строка 29</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Некоторые требования (цели, UI, BPMN, Sequence Diagram) не содержат уникальных префиксов/идентификаторов (RID), что затрудняет трассировку.</li>
+<li><strong>Чем опасно:</strong> Затруднена матрица трассировки (Traceability Matrix) между требованиями, тест-кейсами и баг-репортами.</li>
+<li><strong>Как исправить:</strong> Присвоить уникальные идентификаторы всем структурным требованиям спецификации.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em>Добавить идентификаторы вида GOAL-1, UI-1, PROC-1, INT-1.</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; подтверждено пересчётом; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h3>R-02 · (UI): Состав элементов экрана настроек и отображение ошибки ввода.</h3>
+<blockquote>
+<p>«Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При ошибке ввода сообщение появляется под полем.» — <em>строка 29</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Однозначность</strong> — Не указаны тексты и условия появления сообщений об ошибках.; <strong>Полнота</strong> — Не описаны состояния элементов при выключенном уведомлении и формат отображения суммы.; <strong>Проверяемость</strong> — Невозможно протестировать отображение ошибки без спецификации валидации.; <strong>Соответствие шаблону</strong> — Отсутствует уникальный идентификатор требования.</p>
+<h4>F-04 · Существенный · Неполное описание валидации и ошибок UI</h4>
+<ul>
+<li><strong>Требования:</strong> R-02 (UI)</li>
+<li><strong>Критерий:</strong> Полнота (<code>COMPLETE</code>)</li>
+<li><strong>Где:</strong> строка 29</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«При ошибке ввода сообщение появляется под полем.» — <em>строка 29</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> В требовании к UI указано появление сообщения об ошибке под полем, но отсутствуют тексты сообщений, правила валидации (например, реакция на ввод дробных чисел или букв) и состояние кнопки «Сохранить» при невалидных данных.</li>
+<li><strong>Чем опасно:</strong> Формирование некорректного UX, разногласия между дизайнерами, фронтенд-разработчиками и QA.</li>
+<li><strong>Как исправить:</strong> Добавить тексты и условия вывода ошибок валидации полей ввода.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em>Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При вводе значения вне диапазона 1 000–1 000 000 ₸ или нецелого числа под полем отображается текст ошибки [уточнить: текст ошибки], а кнопка «Сохранить» становится неактивной.</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (В требованиях UI не описаны конкретные тексты ошибок и валидация поля ввода.)</li>
+</ul>
+<h3>R-03 · (Процесс): Последовательность выполнения операций от покупки до отправки push.</h3>
+<blockquote>
+<p>«Проведение покупки → пересчёт расходов → проверка порога → при достижении отправка push → завершение.» — <em>строка 34</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Полнота</strong> — Не описаны альтернативные ветви процесса (порог не достигнут, опция выключена).; <strong>Соответствие шаблону</strong> — Отсутствует уникальный идентификатор требования.</p>
+<h4>F-05 · Существенный · Неполнота описания BPMN-процесса</h4>
+<ul>
+<li><strong>Требования:</strong> R-03 (Процесс)</li>
+<li><strong>Критерий:</strong> Полнота (<code>COMPLETE</code>)</li>
+<li><strong>Где:</strong> строка 34</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Проведение покупки → пересчёт расходов → проверка порога → при достижении отправка push → завершение.» — <em>строка 34</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Схема процесса содержит только идеальный сценарий (happy path) и не описывает завершение процесса в случаях, если порог не достигнут или тумблер уведомлений отключен.</li>
+<li><strong>Чем опасно:</strong> Риск потери альтернативных веток при проектировании архитектуры сервиса и составлении тест-кейсов.</li>
+<li><strong>Как исправить:</strong> Дополнить описание процесса условием ветвления при недостижении порога или отключенном сервисе.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em>Проведение покупки → пересчёт расходов → проверка активности уведомления и достижения порога → если условие выполнено и push в текущем периоде не отправлялся, отправка push → завершение.</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (BPMN описывает исключительно положительный сценарий и упускает ветвления.)</li>
+</ul>
+<h3>R-04 · Ф-1: Правила задания порога расходов держателем активной карты KZT.</h3>
+<blockquote>
+<p>«<em> </em><em>Ф-1.</em>* Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно. По умолчанию уведомление выключено.» — <em>строка 37</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Полнота</strong> — Не описано поведение при изменении статуса карты на неактивный или при смене валюты.</p>
+<h3>R-05 · Ф-2: Правила учёта проведённых покупок и возвратов в месячных расходах.</h3>
+<blockquote>
+<p>«<em> </em><em>Ф-2.</em>* Месяц определяется по дате совершения покупки в Алматы. В расходы входят проведённые покупки. Возврат уменьшает расходы месяца исходной покупки. Переводы и снятие наличных исключаются.» — <em>строка 38</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Однозначность</strong> — Прямое противоречие с таблицей критериев приемки по дате отнесения операции к периоду.; <strong>Полнота</strong> — Не описана обработка возвратов прошлых периодов и влияние на уже отправленные push.; <strong>Проверяемость</strong> — Невозможно составить однозначный автотест из-за противоречий в условиях отнесения покупки к месяцу.; <strong>Корректность</strong> — Содержит критическое противоречие между датой совершения и датой проведения операции.</p>
+<h4>F-01 · Критичный · Противоречие между Ф-2 и критерием приемки по дате проведения</h4>
+<ul>
+<li><strong>Требования:</strong> R-05 (Ф-2), R-13 (Критерий приёмки 2)</li>
+<li><strong>Критерий:</strong> Корректность (<code>CORRECT</code>) · правило FIN-CUTOFF</li>
+<li><strong>Где:</strong> строки 38, 64</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Месяц определяется по дате совершения покупки в Алматы. В расходы входят проведённые покупки.» — <em>строка 38</em>
+«Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸» — <em>строка 64</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Требование Ф-2 прямо указывает, что месяц отнесения операции определяется по дате совершения покупки. В то же время во втором критерии приемки покупка от 31 января, проведенная 1 февраля, увеличивает счетчик февраля (то есть используется дата проведения/клиринга, а не совершения).</li>
+<li><strong>Чем опасно:</strong> Разработчики и тестировщики заложат разную логику учета периода: покупки конца месяца будут либо попадать не в тот месяц, либо ломать критерии приемки при тестировании.</li>
+<li><strong>Как исправить:</strong> Согласовать с бизнесом единую дату отнесения к периоду (совершения или проведения) и синхронизировать Ф-2 с таблицей критериев приемки.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em><em> </em><em>Ф-2.</em>* Месяц определяется по дате совершения покупки по времени Алматы (UTC+5). В расходы входят проведённые покупки, дата совершения которых относится к текущему календарному месяцу.</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; подтверждено пересчётом; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h4>F-09 · Существенный · Неполное описание логики возвратов прошлых периодов</h4>
+<ul>
+<li><strong>Требования:</strong> R-05 (Ф-2)</li>
+<li><strong>Критерий:</strong> Полнота (<code>COMPLETE</code>) · правило FIN-REVERSAL</li>
+<li><strong>Где:</strong> строка 38</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Возврат уменьшает расходы месяца исходной покупки.» — <em>строка 38</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Указано, что возврат уменьшает расходы месяца исходной покупки, но не написано, как обработать ситуацию, если возврат за покупку прошлого месяца приходит в текущем месяце и изменяет исторический итог закрытого периода.</li>
+<li><strong>Чем опасно:</strong> Ошибки расчетов и неоднозначность поведения системы при пересчете расходов за закрытые периоды.</li>
+<li><strong>Как исправить:</strong> Описать регламент обработки возвратов за прошедшие календарные периоды.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em>Возврат уменьшает расходы месяца исходной покупки. Если возврат проведен за покупку прошлого месяца, счетчик прошедшего месяца уменьшается без отзыва ранее отправленных push-уведомлений.</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h4>F-15 · Существенный · Разные единицы измерения денежных сумм в модели данных</h4>
+<ul>
+<li><strong>Требования:</strong> R-05 (Ф-2), R-10 (Данные)</li>
+<li><strong>Критерий:</strong> Однозначность (<code>UNAMBIGUOUS</code>) · правило FIN-UNITS</li>
+<li><strong>Где:</strong> строка 49</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге.» — <em>строка 49</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> В модели данных сумма покупки хранится в тиынах, а порог — в тенге, при этом правила приведения или сравнения единиц в документе не зафиксированы.</li>
+<li><strong>Чем опасно:</strong> Риск ошибок при сравнении накопленной суммы и порога в коде системы (например, пропуск деления/умножения на 100).</li>
+<li><strong>Как исправить:</strong> Привести все денежные величины к единой единице (например, к тиынам) или явно написать правило пересчета.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em>Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в [уточнить: тиынах или тенге].</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; подтверждено пересчётом; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h3>R-06 · Ф-3: Условия и лимит отправки push-уведомлений за календарный месяц.</h3>
+<blockquote>
+<p>«<em> </em><em>Ф-3.</em>* Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push. На карту приходится максимум один такой push за календарный месяц.» — <em>строка 39</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Однозначность</strong> — Конфликтует с требованием Ф-4 при изменении настроек в течение одного месяца.; <strong>Полнота</strong> — Не описана обработка ситуации, когда возврат снижает сумму ниже порога с последующей повторной покупкой.; <strong>Проверяемость</strong> — Проверочные сценарии дают противоположные результаты при смене порога в текущем месяце.; <strong>Корректность</strong> — Правило ограничения «максимум один push» вступает в логическое противоречие с правилом Ф-4.</p>
+<h4>F-02 · Критичный · Конфликт правил лимита push в месяц и изменения настройки</h4>
+<ul>
+<li><strong>Требования:</strong> R-06 (Ф-3), R-07 (Ф-4)</li>
+<li><strong>Критерий:</strong> Однозначность (<code>UNAMBIGUOUS</code>) · правило FIN-CONFLICT</li>
+<li><strong>Где:</strong> строки 39, 40</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«На карту приходится максимум один такой push за календарный месяц.» — <em>строка 39</em>
+«Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки.» — <em>строка 40</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Требование Ф-3 устанавливает жесткое ограничение в 1 push в месяц на карту. Требование Ф-4 указывает, что при изменении порога следующее достижение вызывает push «независимо от истории предыдущей настройки». В сценарии, когда в одном месяце push уже отправлялся, а затем клиент изменил порог и снова его достиг, требования дают противоположные указания.</li>
+<li><strong>Чем опасно:</strong> Неоднозначность при реализации системы информирования: возможен либо спам уведомлениями, либо пропуск уведомления после явного изменения настроек клиентом.</li>
+<li><strong>Как исправить:</strong> Указать явный приоритет или правило сброса лимита при изменении настроек порога клиентом.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em><em> </em><em>Ф-3.</em>* Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push. На одну настройку порога приходится максимум один push за календарный месяц (изменение порога сбрасывает этот лимит).</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h3>R-07 · Ф-4: Поведение системы при изменении порога накопленных расходов.</h3>
+<blockquote>
+<p>«<em> </em><em>Ф-4.</em>* При изменении порога накопленная сумма сохраняется. Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки.» — <em>строка 40</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Однозначность</strong> — Словесная конструкция «независимо от истории» отменяет лимит из Ф-3 без явного приоритета.; <strong>Проверяемость</strong> — Тестирование дает разный результат в зависимости от интерпретации правила Ф-3.; <strong>Корректность</strong> — Создает взаимное противоречие ограничений срабатывания.</p>
+<h3>R-08 · (Sequence Diagram): Взаимодействие сервисов при обработке покупки и достижении порога.</h3>
+<blockquote>
+<p>«Процессинг → сервис расходов: проведена покупка. Сервис расходов → настройки: получить порог карты. Сервис расходов → push: передать последние четыре цифры карты и сумму при достижении порога.» — <em>строка 43</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Полнота</strong> — Не указано, передается ли текст уведомления и уникальный ключ идемпотентности.; <strong>Соответствие шаблону</strong> — Отсутствует идентификатор требования.</p>
+<h3>R-09 · (НФТ): Срок передачи push-уведомления на отправку после события.</h3>
+<blockquote>
+<p>«Сервис передаёт push на отправку в течение минуты после получения события.» — <em>строка 46</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Полнота</strong> — Не указаны перцентиль и допустимый уровень нагрузки.; <strong>Проверяемость</strong> — Отсутствует измеримый показатель (доля случаев, RPS) для проверки.</p>
+<h4>F-14 · Существенный · Неизмеримое требование к времени отправки push-уведомлений</h4>
+<ul>
+<li><strong>Требования:</strong> R-09 (НФТ)</li>
+<li><strong>Критерий:</strong> Проверяемость (<code>VERIFIABLE</code>) · правило NFR-MEASURABLE</li>
+<li><strong>Где:</strong> строка 46</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Сервис передаёт push на отправку в течение минуты после получения события.» — <em>строка 46</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Срок отправки «в течение минуты» не содержит целевого перцентиля и условий нагрузки, при которых этот показатель должен соблюдаться.</li>
+<li><strong>Чем опасно:</strong> Невозможно однозначно составить автотест или оценить соблюдение SLA под нагрузкой.</li>
+<li><strong>Как исправить:</strong> Указать перцентиль и допустимый уровень нагрузки для времени отправки.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em>Сервис передаёт push на отправку в течение [уточнить: срок] секунд для [уточнить: доля]% событий при нагрузке до [уточнить: RPS] RPS.</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; подтверждено пересчётом; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h3>R-10 · (Данные): Перечень хранящихся атрибутов операций и настроек порога.</h3>
+<blockquote>
+<p>«Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге.» — <em>строка 49</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Однозначность</strong> — Денежные суммы указаны в разных единицах (тиыны и тенге).; <strong>Полнота</strong> — Не указано правило пересчета или сравнения суммы в тиынах и порога в тенге.; <strong>Корректность</strong> — Разные единицы измерения создают риск арифметической ошибки при сравнении.</p>
+<h3>R-11 · (Интеграция): Интеграция с REST API и требование к идемпотентности обработки событий.</h3>
+<blockquote>
+<p>«Приложение читает и сохраняет настройки через дочерний документ «Уведомление о расходах по карте — REST API». Повторная доставка одного события процессинга сохраняет исходный итог.» — <em>строка 52</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Полнота</strong> — Не указан ключ идемпотентности для распознавания повторного события.; <strong>Проверяемость</strong> — Нельзя однозначно протестировать идемпотентность без описания уникального ключа.</p>
+<h4>F-16 · Существенный · Не определен ключ идемпотентности при повторной доставке события</h4>
+<ul>
+<li><strong>Требования:</strong> R-11 (Интеграция)</li>
+<li><strong>Критерий:</strong> Полнота (<code>COMPLETE</code>) · правило FIN-IDEMPOTENCY</li>
+<li><strong>Где:</strong> строка 52</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Повторная доставка одного события процессинга сохраняет исходный итог.» — <em>строка 52</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Требование декларирует сохранение итога при повторной доставке события процессинга, но не указывает ключ, по которому система определяет дубликат.</li>
+<li><strong>Чем опасно:</strong> Риск повторного учёта транзакций и ошибочной отправки push-уведомлений при сбоях сети или повторах сообщений.</li>
+<li><strong>Как исправить:</strong> Указать уникальное поле транзакции (например, transaction_id), выступающее ключом идемпотентности.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em>Повторная доставка события процессинга с совпадающим [уточнить: ключ идемпотентности] не меняет накопленную сумму и сохраняет исходный итог.</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h4>F-21 · Существенный · Несоответствие типов полей amount и enabled в запросе и ответе</h4>
+<ul>
+<li><strong>Требования:</strong> R-11 (Интеграция), R-15 (API Логика), R-17 (API Параметры)</li>
+<li><strong>Критерий:</strong> Корректность (<code>CORRECT</code>) · правило API-CONTRACT</li>
+<li><strong>Где:</strong> строки 143, 156</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«| <code>amount</code> | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | <code>limit_kzt</code> |» — <em>строка 143</em>
+«| <code>amount</code> | string | При успехе | Порог в тенге | <code>limit_kzt</code> |» — <em>строка 156</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> В Query-параметрах запроса поля amount и enabled объявлены с типом integer, тогда как в структуре ответа эти же поля указаны как string.</li>
+<li><strong>Чем опасно:</strong> Разное представление типов данных в спецификации приводит к несогласованной реализации клиентом и сервером и ошибкам парсинга.</li>
+<li><strong>Как исправить:</strong> Согласовать контракт API и указать одинаковые типы данных для полей в запросе и ответе.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em>Указать для полей amount и enabled тип [уточнить: integer или string] как в параметрах запроса, так и в теле ответа.</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h3>R-13 · (Критерий приёмки 2): Учёт даты проведения покупки по часовому поясу Алматы.</h3>
+<blockquote>
+<p>«| Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸ |» — <em>строка 64</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Корректность</strong> — Противоречит Ф-2: операцию отнесли к февралю по дате проведения, а не по дате совершения.</p>
+<h3>R-15 · (API Логика): Шаги проверки сессии, карты, параметров и сохранения настройки в API.</h3>
+<blockquote>
+<p>«1. Проверить пользовательскую сессию. 2. Проверить принадлежность карты клиенту. 3. Проверить сумму и переключатель. 4. Заменить настройку и вернуть результат сохранения. 5. При отклонении суммы вернуть прежнее состояние и результат ERROR.» — <em>строки 117, 118, 119, 120, 121</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Однозначность</strong> — Возврат результата ERROR происходит с HTTP-кодом 200.; <strong>Полнота</strong> — Не зафиксирован корректный статус HTTP при ошибках валидации.; <strong>Корректность</strong> — Нарушена семантика кодов ответа HTTP.</p>
+<h4>F-20 · Существенный · Возврат ошибки бизнес-логики с кодом HTTP 200 OK</h4>
+<ul>
+<li><strong>Требования:</strong> R-15 (API Логика), R-18 (API Ошибки)</li>
+<li><strong>Критерий:</strong> Однозначность (<code>UNAMBIGUOUS</code>) · правило API-STATUS</li>
+<li><strong>Где:</strong> строки 121, 171</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«5. При отклонении суммы вернуть прежнее состояние и результат ERROR.» — <em>строка 121</em>
+«{"result":"ERROR","message":"Проверьте сумму"}» — <em>строка 171</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> При отклонении суммы метод возвращает результат ERROR в теле ответа со статусом HTTP 200 OK вместо соответствующего кода ошибки HTTP 400 Bad Request.</li>
+<li><strong>Чем опасно:</strong> Клиентское приложение не сможет стандартно обрабатывать сетевые и бизнес-ошибки REST API.</li>
+<li><strong>Как исправить:</strong> Изменить HTTP-код ответа при ошибке валидации на 400 Bad Request.</li>
+<li><strong>Предлагаемая формулировка:</strong> <em>5. При отклонении суммы вернуть прежнее состояние и код ответа HTTP 400 Bad Request с описанием ошибки.</em></li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h3>R-17 · (API Параметры): Определения query-параметров cardId, amount и enabled.</h3>
+<blockquote>
+<p>«| <code>cardId</code> | string | 1–64 | Да | Карта клиента | Идентификатор карты | <code>card_id</code> |
+| <code>amount</code> | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | <code>limit_kzt</code> |
+| <code>enabled</code> | integer | 1 знак | Да | 0 или 1 | Признак включения | <code>enabled</code> |» — <em>строки 142, 143, 144</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Корректность</strong> — Типы полей amount и enabled в запросе (integer) противоречат типам этих же полей в описании ответа (string)</p>
+<h3>R-18 · (API Ошибки): Возврат ошибки 404 при запросе к чужой или отсутствующей карте.</h3>
+<blockquote>
+<p>«Для чужой карты возвращается 404, как и для отсутствующей карты.» — <em>строка 189</em></p>
+</blockquote>
+<p>Оценка по критериям: <strong>Однозначность</strong> — Заголовок раздела содержит код 403, а текст требования описывает код 404; <strong>Корректность</strong> — Противоречие между HTTP-кодом ошибки в заголовке раздела (403) и описанным поведением (404); <strong>Соответствие шаблону</strong> — Оформление подраздела 403 некорректно, так как содержит описание статуса 404</p>
+<p>Без замечаний: R-14, R-16.</p>
+<h2>4. Проверка всего набора требований</h2>
+<p>Документ содержит базовую бизнес-идею, однако не готов к передаче в разработку и тестирование из-за существенных системных дефектов. Выявлены критические противоречия между функциональными требованиями, критериями приёмки и спецификацией API (отнесение транзакций к периоду, обработка ошибок HTTP, типы данных). Также в спецификации отсутствуют сценарии обработки крайних состояний (включение опции при превышенном лимите, возвраты прошлых периодов, идемпотентность) и не зафиксированы версионность и ранжирование требований.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Свойство набора</th>
+<th style="text-align: center;">Оценка</th>
+<th style="text-align: left;">Комментарий</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Полнота набора</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">В документе отсутствуют правила для мультивалютных операций, возвратов прошлых периодов, расчета тиынов, идемпотентности процессинга и обработки ошибок в UI.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Непротиворечивость набора</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">Присутствуют противоречия между ФТР и критериями приёмки по определению даты периода, а также между описанием API, его HTTP-кодами и форматом полей.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Выполнимость набора</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">Заявленный функционал технически реализуем на стеке мобильного банка и карточного процессинга после устранения противоречий в контрактах.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Понятность набора</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">Бизнес-цель и общая концепция понятны, структура документа логично разделена на бизнес-часть и REST API.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Возможность валидации</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">Часть функциональных требований (Ф-1, Ф-4) не покрыта критериями приёмки, а требование к скорости отправки push не содержит измеримого перцентиля.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Отсутствие дублей</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">Прямого дублирования требований разными словами в документе не обнаружено.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Нет лишних проектных решений</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: left;">Требования сформулированы на уровне бизнес-логики и REST API контракта без необоснованного навязывания конкретной реализации.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Нет открытых мест (TBD)</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">Документ содержит незаполненные заглушки («заполняются тестировщиками»), пустые значения в таблице согласующих и пропущенные URL/Swagger.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Ранжированность (IEEE 830)</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">В документе отсутствует приоритезация и ранжирование требований по степени важности или критичности.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Модифицируемость (IEEE 830)</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">Версия и дата документа не заполнены, у большинства требований отсутствуют уникальные идентификаторы, что затрудняет внесение изменений.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Прослеживаемость (IEEE 830)</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: left;">Отсутствует сквозная прослеживаемость: большинство требований не снабжено ID, а критерии приёмки покрывают лишь 3 из 4 функциональных пунктов.</td>
+</tr>
+</tbody>
+</table>
+<h3>Замечания уровня набора</h3>
+<h4>F-06 · Существенный · Не описано: FIN-ORDER — Событие проведения покупки приходит раньше события отмены или с задержкой в неск</h4>
+<ul>
+<li><strong>Требования:</strong> R-03 (Процесс)</li>
+<li><strong>Критерий:</strong> Полнота набора (<code>SET_COMPLETE</code>) · правило FIN-ORDER</li>
+<li><strong>Где:</strong> строка 34</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Проведение покупки → пересчёт расходов → проверка порога → при достижении отправка push → завершение.» — <em>строка 34</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Не описана обработка событий процессинга, пришедших не по порядку или с задержкой. Сценарий: Событие проведения покупки приходит раньше события отмены или с задержкой в несколько дней. Поведение системы не регламентировано.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (Не регламентирована обработка событий процессинга, поступивших не по порядку.)</li>
+</ul>
+<h4>F-07 · Существенный · Функциональные требования без критериев приёмки</h4>
+<ul>
+<li><strong>Требования:</strong> R-04 (Ф-1), R-07 (Ф-4), R-12 (Критерий приёмки 1)</li>
+<li><strong>Критерий:</strong> Прослеживаемость (IEEE 830) (<code>TRACEABLE</code>) · правило DOC-TRACE</li>
+<li><strong>Где:</strong> строки 37, 40</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«<em> </em><em>Ф-1.</em><em> Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно. По умолчанию уведомление выключено.» — <em>строка 37</em>
+«</em> <strong>Ф-4.</strong> При изменении порога накопленная сумма сохраняется. Если она ниже нового порога, следующее достижение вызывает push независимо от истории п» — <em>строка 40</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Для требований Ф-1, Ф-4 нет ни одного критерия приёмки: их выполнение нечем подтвердить.</li>
+<li><strong>Как исправить:</strong> Добавить критерии приёмки (условия, действие, ожидаемый результат) для каждого требования.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (Отсутствуют критерии приёмки для требований Ф-1 и Ф-4.)</li>
+</ul>
+<h4>F-08 · Существенный · Не описано: FIN-STATE — Клиент включает уведомление в середине месяца, когда его расходы уже составляют</h4>
+<ul>
+<li><strong>Требования:</strong> R-04 (Ф-1), R-06 (Ф-3), R-07 (Ф-4)</li>
+<li><strong>Критерий:</strong> Полнота набора (<code>SET_COMPLETE</code>) · правило FIN-STATE</li>
+<li><strong>Где:</strong> строки 37, 40</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«По умолчанию уведомление выключено.» — <em>строка 37</em>
+«При изменении порога накопленная сумма сохраняется.» — <em>строка 40</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Не описано поведение системы при включении опции или снижении/повышении порога в середине месяца, когда накопленные расходы уже превышают новый порог. Сценарий: Клиент включает уведомление в середине месяца, когда его расходы уже составляют 100 000 ₸ при пороге 50 000 ₸. Не описано, отправляется ли push мгновенно или при следующей покупке.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h4>F-10 · Существенный · Не описано: FIN-CURRENCY — Клиент совершает покупку в валюте, отличной от KZT. Не указано, по какому курсу</h4>
+<ul>
+<li><strong>Требования:</strong> R-05 (Ф-2)</li>
+<li><strong>Критерий:</strong> Полнота набора (<code>SET_COMPLETE</code>) · правило FIN-CURRENCY</li>
+<li><strong>Где:</strong> строка 38</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«В расходы входят проведённые покупки.» — <em>строка 38</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Не описаны правила конвертации и выбора курса для покупок в иностранной валюте. Сценарий: Клиент совершает покупку в валюте, отличной от KZT. Не указано, по какому курсу и в какой момент сумма пересчитывается для учета в месячном бюджете.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (Не указаны правила конвертации валютных операций для включения в счетчик расходов.)</li>
+</ul>
+<h4>F-11 · Существенный · Не описано: FIN-CLASSIFY — Клиент совершает платеж или с него списывается комиссия. Из текста требования Ф-</h4>
+<ul>
+<li><strong>Требования:</strong> R-05 (Ф-2)</li>
+<li><strong>Критерий:</strong> Полнота набора (<code>SET_COMPLETE</code>) · правило FIN-CLASSIFY</li>
+<li><strong>Где:</strong> строка 38</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«В расходы входят проведённые покупки. Возврат уменьшает расходы месяца исходной покупки. Переводы и снятие наличных исключаются.» — <em>строка 38</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Перечень типов операций неполный: не описан учет комиссий, квази-кэш операций и платежей в мобильном банке. Сценарий: Клиент совершает платеж или с него списывается комиссия. Из текста требования Ф-2 неясно, входят ли данные операции в расходы.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (Не уточнен учет комиссий, платежей и квази-кэш операций в общей сумме расходов.)</li>
+</ul>
+<h4>F-12 · Существенный · Не описано: FIN-REVERSAL — Сумма расходов превысила порог, push отправлен. Затем поступил возврат, и расход</h4>
+<ul>
+<li><strong>Требования:</strong> R-05 (Ф-2), R-06 (Ф-3)</li>
+<li><strong>Критерий:</strong> Полнота набора (<code>SET_COMPLETE</code>) · правило FIN-REVERSAL</li>
+<li><strong>Где:</strong> строки 38, 39</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Возврат уменьшает расходы месяца исходной покупки.» — <em>строка 38</em>
+«На карту приходится максимум один такой push за календарный месяц.» — <em>строка 39</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Не описано влияние частичных возвратов и повторного превышения порога после возврата на лимит уведомлений. Сценарий: Сумма расходов превысила порог, push отправлен. Затем поступил возврат, и расходы стали ниже порога. Новая покупка снова превышает порог в том же месяце. Не указано, отправляется ли push повторно.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h4>F-13 · Существенный · Не описано: DOC-DATA — Модель данных хранит операции, но не содержит поля <code>parent_operation_id</code> или ссы</h4>
+<ul>
+<li><strong>Требования:</strong> R-05 (Ф-2), R-10 (Данные)</li>
+<li><strong>Критерий:</strong> Полнота набора (<code>SET_COMPLETE</code>) · правило DOC-DATA</li>
+<li><strong>Где:</strong> строки 38, 49</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге.» — <em>строка 49</em>
+«Возврат уменьшает расходы месяца исходной покупки.» — <em>строка 38</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> В модели данных отсутствуют атрибуты для связи возврата с исходной операцией. Сценарий: Модель данных хранит операции, но не содержит поля <code>parent_operation_id</code> или ссылки на исходный месяц для реализации правила Ф-2 по возвратам.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (В модель данных не включено поле связи возврата с исходной операцией.)</li>
+</ul>
+<h4>F-17 · Существенный · Не описано: DOC-ROLLBACK — В случае сбоя карточного процессинга или сервиса уведомлений в документе не регл</h4>
+<ul>
+<li><strong>Требования:</strong> R-01 (Цель)</li>
+<li><strong>Критерий:</strong> Полнота набора (<code>SET_COMPLETE</code>) · правило DOC-ROLLBACK</li>
+<li><strong>Где:</strong> строка 76</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«При невозможности отката — варианты скрытия функционала» — <em>строка 76</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Не описаны порядок отката доработки и механизмы скрытия функционала (feature toggle) при аварии. Сценарий: В случае сбоя карточного процессинга или сервиса уведомлений в документе не регламентированы действия по отключению функционала.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (В документе не регламентирован порядок отката и скрытия функций при аварии.)</li>
+</ul>
+<h4>F-18 · Существенный · Нарушено правило API-SEMANTICS — Метод <code>/alerts/saveLimit</code> предназначен для модификации данных (сохранение порога</h4>
+<ul>
+<li><strong>Требования:</strong> R-11 (Интеграция), R-15 (API Логика)</li>
+<li><strong>Критерий:</strong> Непротиворечивость набора (<code>SET_CONSISTENT</code>) · правило API-SEMANTICS</li>
+<li><strong>Где:</strong> строки 103, 104, 108</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Description | Сохранение порога. Функциональные требования: чтение порога» — <em>строка 103</em>
+«REST type | GET» — <em>строка 104</em>
+«Dev: <code>/alerts/saveLimit</code>» — <em>строка 108</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Метод сохранения настройки использует HTTP-метод GET и содержит противоречивые описания (чтение vs сохранение). Сценарий: Метод <code>/alerts/saveLimit</code> предназначен для модификации данных (сохранение порога), но объявлен как GET, а в Description смешаны чтение и сохранение.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (Для метода сохранения/модификации данных используется HTTP GET вместо POST/PUT.)</li>
+</ul>
+<h4>F-19 · Существенный · Не описано: NFR-SECURITY — Параметры управления лимитом передаются через GET query-параметры в URL, что соз</h4>
+<ul>
+<li><strong>Требования:</strong> R-08 (Sequence Diagram), R-11 (Интеграция)</li>
+<li><strong>Критерий:</strong> Полнота набора (<code>SET_COMPLETE</code>) · правило NFR-SECURITY</li>
+<li><strong>Где:</strong> строка 109</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«curl -G "$BASE/alerts/saveLimit" -H "Authorization: Bearer $TOKEN" --data 'cardId=demo-42&amp;amount=50000&amp;enabled=1'» — <em>строка 109</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Не описаны требования по защите персональных данных, а API передает параметры изменения настроек в открытом URL (Query-параметры). Сценарий: Параметры управления лимитом передаются через GET query-параметры в URL, что создаёт риск логирования чувствительных данных.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (Использование GET-запроса с query-параметрами для изменения состояния создаёт риски утечки данных в логах.)</li>
+</ul>
+<h4>F-22 · Существенный · Нарушено правило API-HEADERS — Спецификация указывает <code>Content-Type: application/json</code> при `Тело не используетс</h4>
+<ul>
+<li><strong>Требования:</strong> R-17 (API Параметры)</li>
+<li><strong>Критерий:</strong> Непротиворечивость набора (<code>SET_CONSISTENT</code>) · правило API-HEADERS</li>
+<li><strong>Где:</strong> строки 147, 148</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Content-Type: application/json .» — <em>строка 147</em>
+«Тело не используется.» — <em>строка 148</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> Заголовок Content-Type: application/json указан для GET-запроса, у которого отсутствует тело. Сценарий: Спецификация указывает <code>Content-Type: application/json</code> при <code>Тело не используется</code> и методе GET.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (Указан Content-Type: application/json при отметке «Тело не используется» в GET-запросе.)</li>
+</ul>
+<h4>F-24 · Незначительный · Нарушено правило DOC-HYGIENE — Раздел ревью и блок согласующих оставлены в виде шаблонов без проставления итого</h4>
+<ul>
+<li><strong>Требования:</strong> R-02 (UI), R-10 (Данные)</li>
+<li><strong>Критерий:</strong> Непротиворечивость набора (<code>SET_CONSISTENT</code>) · правило DOC-HYGIENE</li>
+<li><strong>Где:</strong> строки 68, 72</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Документ (версия/дата) в источнике не заполнен. Пункты чек-листа приведены как в шаблоне, отметки не проставлены.» — <em>строка 68</em>
+«Да / Нет» — <em>строка 72</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> В документе не заполнены метаданные (версия, дата, согласующие), чек-лист ревью содержит незаполненные варианты «Да / Нет». Сценарий: Раздел ревью и блок согласующих оставлены в виде шаблонов без проставления итоговых значений.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; подтверждено пересчётом; критик: подтверждено (основное замечание в группе дублей)</li>
+</ul>
+<h4>F-25 · Незначительный · Не описано: API-ENV — Разработчик и QA не имеют информации о Prod URL и Swagger-документации для API.</h4>
+<ul>
+<li><strong>Требования:</strong> R-11 (Интеграция)</li>
+<li><strong>Критерий:</strong> Полнота набора (<code>SET_COMPLETE</code>) · правило API-ENV</li>
+<li><strong>Где:</strong> строки 108, 110</li>
+<li><strong>Цитаты из документа:</strong><blockquote>
+<p>«Prod: —» — <em>строка 108</em>
+«Swagger | —» — <em>строка 110</em></p>
+</blockquote>
+</li>
+<li><strong>Проблема:</strong> В таблице общих параметров API отсутствуют адреса промышленного окружения и ссылка на Swagger. Сценарий: Разработчик и QA не имеют информации о Prod URL и Swagger-документации для API.</li>
+<li><strong>Как исправить:</strong> Дописать правило в требования и добавить критерий приёмки для этого сценария.</li>
+<li><strong>Проверка замечания:</strong> цитаты найдены в документе; критик: подтверждено (Отсутствуют Prod URL и ссылка на Swagger-документацию в спецификации API.)</li>
+</ul>
+<h3>Проверка критериев приёмки исполнением</h3>
+<p>Каждый критерий приёмки «исполнен» по правилам документа шаг за шагом; результат сравнён с ожидаемым в критерии.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Критерий</th>
+<th style="text-align: left;">По требованиям получается</th>
+<th style="text-align: left;">В критерии ожидается</th>
+<th style="text-align: left;">Итог</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">R-12 (Критерий приёмки 1)</td>
+<td style="text-align: left;">Итог 50 000 ₸ и один push</td>
+<td style="text-align: left;">Итог 50 000 ₸ и один push</td>
+<td style="text-align: left;"><strong>совпадает</strong>. Расчёт суммы (48 500 + 1 500 = 50 000 ₸) и отправка 1 push при достижении порога полностью соответствуют правилам Ф-2 и Ф-3.</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-13 (Критерий приёмки 2)</td>
+<td style="text-align: left;">Январский счётчик вырос на 4 000 ₸</td>
+<td style="text-align: left;">Февральский счётчик вырос на 4 000 ₸</td>
+<td style="text-align: left;"><strong>РАСХОЖДЕНИЕ</strong>. Согласно Ф-2 месяц определяется по дате совершения (31 января — январь), а не по дате проведения (1 февраля), поэтому должен увеличиться январский счётчик, а не февральский.</td>
+</tr>
+<tr>
+<td style="text-align: left;">R-14 (Критерий приёмки 3)</td>
+<td style="text-align: left;">Счётчик показывает 19 900 ₸</td>
+<td style="text-align: left;">Счётчик показывает 19 900 ₸</td>
+<td style="text-align: left;"><strong>совпадает</strong>. Перевод исключается из расчета расходов в соответствии с Ф-2, сумма расходов не меняется.</td>
+</tr>
+</tbody>
+</table>
+<p>Функциональные требования без критериев приёмки: R-04 (Ф-1), R-07 (Ф-4).</p>
+<h3>Проход по предметным правилам (методика <code>methodology/domain_rules.md</code>)</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Правило</th>
+<th style="text-align: left;">Статус</th>
+<th style="text-align: left;">Пояснение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>FIN-CUTOFF</code></td>
+<td style="text-align: left;"><strong>НАРУШЕНО</strong></td>
+<td style="text-align: left;">Требование Ф-2 относит покупку к месяцу по дате совершения, а критерий приемки 2 относит ее к месяцу по дате проведения (posting). Сценарий: Покупка совершена 31 января, но проведена 1 февраля. Требование Ф-2 относит ее к январю, а критерий приёмки — к февралю.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-CONFLICT</code></td>
+<td style="text-align: left;"><strong>НАРУШЕНО</strong></td>
+<td style="text-align: left;">Требование Ф-3 ограничивает отправку 1 push на карту в месяц, а Ф-4 допускает повторный push при изменении порога 'независимо от истории'. Сценарий: В текущем месяце push уже отправлялся. Клиент меняет порог, расходы снова ниже порога, затем совершается покупка. Ф-3 запрещает второй push за месяц, а Ф-4 требует его отправить.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>API-SEMANTICS</code></td>
+<td style="text-align: left;"><strong>НАРУШЕНО</strong></td>
+<td style="text-align: left;">Метод сохранения настройки использует HTTP-метод GET и содержит противоречивые описания (чтение vs сохранение). Сценарий: Метод <code>/alerts/saveLimit</code> предназначен для модификации данных (сохранение порога), но объявлен как GET, а в Description смешаны чтение и сохранение.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>API-STATUS</code></td>
+<td style="text-align: left;"><strong>НАРУШЕНО</strong></td>
+<td style="text-align: left;">Коды ответов противоречат спецификации: при 200 OK возвращается ERROR в теле, заголовок 200 сопоставлен с Created, а заголовок 403 описывает код 404. Сценарий: При ошибке бизнес-логики метод возвращает HTTP status 200 OK с JSON <code>{"result":"ERROR"}</code>. В разделе статусов под заголовком 403 описан ответ 404.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>API-CONTRACT</code></td>
+<td style="text-align: left;"><strong>НАРУШЕНО</strong></td>
+<td style="text-align: left;">Типы данных полей запроса и ответа распадаются, а также отсутствует метод для чтения настроек. Сценарий: Поле <code>amount</code> в запросе заявлено как integer, а в ответе — как string. Документ А требует чтение и сохранение настроек, но специфицирован только метод сохранения.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>API-HEADERS</code></td>
+<td style="text-align: left;"><strong>НАРУШЕНО</strong></td>
+<td style="text-align: left;">Заголовок Content-Type: application/json указан для GET-запроса, у которого отсутствует тело. Сценарий: Спецификация указывает <code>Content-Type: application/json</code> при <code>Тело не используется</code> и методе GET.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DOC-HYGIENE</code></td>
+<td style="text-align: left;"><strong>НАРУШЕНО</strong></td>
+<td style="text-align: left;">В документе не заполнены метаданные (версия, дата, согласующие), чек-лист ревью содержит незаполненные варианты «Да / Нет». Сценарий: Раздел ревью и блок согласующих оставлены в виде шаблонов без проставления итоговых значений.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-ROUNDING</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">В документе не описано правило точности и округления при пересчете сумм из тиынов в тенге для сравнения с порогом. Сценарий: Не указано, как тиыны суммируются и сопоставляются с целым порогом в тенге при проверке условия превышения.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-CURRENCY</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">Не описаны правила конвертации и выбора курса для покупок в иностранной валюте. Сценарий: Клиент совершает покупку в валюте, отличной от KZT. Не указано, по какому курсу и в какой момент сумма пересчитывается для учета в месячном бюджете.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-PERIOD-CLOSE</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">Не описана обработка возвратов и запоздавших операций за уже закрытые прошлые периоды. Сценарий: В текущем месяце поступает возврат за покупку, совершенную в прошлом месяце. Не определено, пересчитывается ли закрытый бюджет прошлого месяца и меняется ли статус отправки уведомления.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-CLASSIFY</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">Перечень типов операций неполный: не описан учет комиссий, квази-кэш операций и платежей в мобильном банке. Сценарий: Клиент совершает платеж или с него списывается комиссия. Из текста требования Ф-2 неясно, входят ли данные операции в расходы.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-REVERSAL</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">Не описано влияние частичных возвратов и повторного превышения порога после возврата на лимит уведомлений. Сценарий: Сумма расходов превысила порог, push отправлен. Затем поступил возврат, и расходы стали ниже порога. Новая покупка снова превышает порог в том же месяце. Не указано, отправляется ли push повторно.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-IDEMPOTENCY</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">Указано требование к идемпотентности, но не описан конкретный ключ уникальности для распознавания дублей. Сценарий: Приходит повторное событие процессинга. Документ не указывает, по какому полю (например, transaction ID) определяется дублирование.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-ORDER</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">Не описана обработка событий процессинга, пришедших не по порядку или с задержкой. Сценарий: Событие проведения покупки приходит раньше события отмены или с задержкой в несколько дней. Поведение системы не регламентировано.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-STATE</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">Не описано поведение системы при включении опции или снижении/повышении порога в середине месяца, когда накопленные расходы уже превышают новый порог. Сценарий: Клиент включает уведомление в середине месяца, когда его расходы уже составляют 100 000 ₸ при пороге 50 000 ₸. Не описано, отправляется ли push мгновенно или при следующей покупке.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>NFR-MEASURABLE</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">Нефункциональное требование не содержит перцентиля, условий нагрузки и действия при недоступности смежных систем. Сценарий: Не указано, в каком проценте случаев (например, 99% перцентиль) выдерживается лимит в 1 минуту и что происходит при недоступности Push-сервиса.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>NFR-SECURITY</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">Не описаны требования по защите персональных данных, а API передает параметры изменения настроек в открытом URL (Query-параметры). Сценарий: Параметры управления лимитом передаются через GET query-параметры в URL, что создаёт риск логирования чувствительных данных.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>API-ENV</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">В таблице общих параметров API отсутствуют адреса промышленного окружения и ссылка на Swagger. Сценарий: Разработчик и QA не имеют информации о Prod URL и Swagger-документации для API.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DOC-TRACE</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">Отсутствуют критерии приёмки для требований Ф-1 и Ф-4, а раздел «Тестирование требований» не заполнен. Сценарий: Нет критериев приемки для проверки установки порога вне диапазона 1000–1000000 ₸ и для сценария изменения порога.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DOC-DATA</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">В модели данных отсутствуют атрибуты для связи возврата с исходной операцией. Сценарий: Модель данных хранит операции, но не содержит поля <code>parent_operation_id</code> или ссылки на исходный месяц для реализации правила Ф-2 по возвратам.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DOC-ROLLBACK</code></td>
+<td style="text-align: left;"><strong>не описано</strong></td>
+<td style="text-align: left;">Не описаны порядок отката доработки и механизмы скрытия функционала (feature toggle) при аварии. Сценарий: В случае сбоя карточного процессинга или сервиса уведомлений в документе не регламентированы действия по отключению функционала.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-UNITS</code></td>
+<td style="text-align: left;">описано</td>
+<td style="text-align: left;">Указаны валюта (KZT / ₸) и единицы измерения сумм (тиыны для покупок, тенге для порога).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-BOUNDS</code></td>
+<td style="text-align: left;">описано</td>
+<td style="text-align: left;">Границы порога (1 000 и 1 000 000 ₸) явно указаны как включительные во всех разделах требований и API.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-TZ</code></td>
+<td style="text-align: left;">описано</td>
+<td style="text-align: left;">Часовой пояс явно зафиксирован как Алматы в функциональных требованиях и критериях приёмки.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-STATUS</code></td>
+<td style="text-align: left;">описано</td>
+<td style="text-align: left;">Явно зафиксировано, что учитываются только проведённые покупки.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-AUDIT</code></td>
+<td style="text-align: left;">описано</td>
+<td style="text-align: left;">Состав хранящихся атрибутов содержит идентификаторы карты, операции, месяц, суммы и признак отправки.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FIN-TRIGGER</code></td>
+<td style="text-align: left;">описано</td>
+<td style="text-align: left;">Условие срабатывания (переход от суммы ниже порога к сумме равной или выше) описано однозначно.</td>
+</tr>
+</tbody>
+</table>
+<h3>Сценарный прогон</h3>
+<p>Агент «прогнал» пограничные сценарии через правила документа, чтобы найти конфликты и пробелы.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">#</th>
+<th style="text-align: left;">Сценарий</th>
+<th style="text-align: left;">Какие пункты применяются</th>
+<th style="text-align: left;">Что следует из документа</th>
+<th style="text-align: left;">Итог</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">Проведение покупки точно на сумму порога (с 48 500 ₸ до 50 000 ₸ при пороге 50 000 ₸)</td>
+<td style="text-align: left;">R-06 (Ф-3), R-12 (Критерий приёмки 1)</td>
+<td style="text-align: left;">Система успешно отправляет push-уведомление клиенту при достижении ровной суммы порога.</td>
+<td style="text-align: left;"><strong>без замечаний</strong>.Поведение при точной границе порога описано согласованно. По пунктам: R-06: Отправка push-уведомления при переходе от суммы ниже порога к сумме равной или выше порога.; R-12: При покупке на 1 500 ₸ итог составляет 50 000 ₸ и отправляется один push.</td>
+</tr>
+<tr>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">Покупка совершена в конце месяца, а проведена по процессингу в начале следующего месяца</td>
+<td style="text-align: left;">R-05 (Ф-2), R-13 (Критерий приёмки 2)</td>
+<td style="text-align: left;">Функциональное требование Ф-2 относит операцию к январю, а Критерий приёмки 2 — к февралю.</td>
+<td style="text-align: left;"><strong>КОНФЛИКТ</strong>.Непротиворечивость нарушена: дата совершения и дата проведения дают разный результат отнесения к периоду. По пунктам: R-05: Месяц определяется по дате совершения покупки в Алматы (покупка относиться к январю).; R-13: Покупка 31 января, проведенная 1 февраля, увеличивает февральский счетчик расходов.</td>
+</tr>
+<tr>
+<td style="text-align: left;">3</td>
+<td style="text-align: left;">Повторное превышение порога в том же месяце после проведения возврата товара</td>
+<td style="text-align: left;">R-05 (Ф-2), R-06 (Ф-3)</td>
+<td style="text-align: left;">Сумма расходов снова пересекает порог снизу вверх, но Ф-3 ограничивает количество push до одного в месяц, не уточняя сброс флага при возврате.</td>
+<td style="text-align: left;"><strong>пробел</strong>.Пропущено правило сброса признака отправки push при возврате средств. По пунктам: R-05: Возврат уменьшает накопленные расходы месяца исходной покупки (сумма опускается ниже порога).; R-06: На карту приходится максимум один push за календарный месяц, но правило требует отправки при переходе суммы снизу вверх.</td>
+</tr>
+<tr>
+<td style="text-align: left;">4</td>
+<td style="text-align: left;">Изменение порога на меньший, когда push в текущем месяце УЖЕ был отправлен по старому порогу</td>
+<td style="text-align: left;">R-06 (Ф-3), R-07 (Ф-4)</td>
+<td style="text-align: left;">Правило Ф-3 запрещает отправку второго push в месяце, а правило Ф-4 требует отправки push при достижении нового порога независимо от истории.</td>
+<td style="text-align: left;"><strong>КОНФЛИКТ</strong>.Прямой конфликт между суточным/месячным лимитом push и правилом смены настройки. По пунктам: R-06: На карту приходится максимум один push за календарный месяц.; R-07: Если накопленная сумма ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки.</td>
+</tr>
+<tr>
+<td style="text-align: left;">5</td>
+<td style="text-align: left;">Включение уведомлений в середине месяца, когда накопленные расходы уже выше задаваемого порога</td>
+<td style="text-align: left;">R-04 (Ф-1), R-06 (Ф-3), R-07 (Ф-4)</td>
+<td style="text-align: left;">Документ не регламентирует, должна ли система отправить push мгновенно при включении или ожидать следующий месяц/сброс.</td>
+<td style="text-align: left;"><strong>пробел</strong>.Не описано состояние включения функции при уже превышенном пороге. По пунктам: R-04: По умолчанию уведомление выключено.; R-06: Push отправляется при переходе от суммы НИЖЕ порога к сумме равной или ВЫШЕ.; R-07: Описывает поведение только для случая, когда сумма НИЖЕ нового порога.</td>
+</tr>
+<tr>
+<td style="text-align: left;">6</td>
+<td style="text-align: left;">Совершение клиентом операции денежного перевода (P2P) при расходах близких к порогу</td>
+<td style="text-align: left;">R-05 (Ф-2), R-14 (Критерий приёмки 3)</td>
+<td style="text-align: left;">Перевод исключается из расчёта расходов, push-уведомление не отправляется.</td>
+<td style="text-align: left;"><strong>без замечаний</strong>.Логика исключения нерасходных операций описана полно и подтверждена примером. По пунктам: R-05: Переводы и снятия наличных исключаются из подсчета расходов.; R-14: Перевод 500 ₸ при расходах 19 900 ₸ и пороге 20 000 ₸ оставляет счетчик на уровне 19 900 ₸.</td>
+</tr>
+<tr>
+<td style="text-align: left;">7</td>
+<td style="text-align: left;">Передача некорректной суммы порога (например, 500 ₸) в REST API метод /alerts/saveLimit</td>
+<td style="text-align: left;">R-15 (API Логика), R-16 (API Правила), R-18 (API Ошибки)</td>
+<td style="text-align: left;">Разработчик не может определить корректный HTTP-код ответа сервера при валидации параметров.</td>
+<td style="text-align: left;"><strong>КОНФЛИКТ</strong>.Противоречие между HTTP 400 Bad Request и HTTP 200 OK с бизнес-ошибкой. По пунктам: R-15: При отклонении суммы вернуть прежнее состояние и результат ERROR.; R-16: Сумма должна быть целым числом тенге от 1 000 до 1 000 000.; R-18: Раздел Статусы декларирует HTTP 400 при неверных параметрах, но в примере кода возвращается HTTP 200 с {"result":"ERROR"}.</td>
+</tr>
+</tbody>
+</table>
+<h2>5. Уточняющие вопросы к автору ТЗ</h2>
+<p>Вопросы, без ответа на которые нельзя однозначно реализовать или протестировать требования. Ответы можно вписать в файл <code>*.answers.yaml</code> рядом с отчётом и запустить агента повторно с флагом <code>--answers</code>: агент пересмотрит выводы.</p>
+<p><strong>Q-01 · Высокий приоритет · кому: Product Owner / Бизнес-аналитик</strong></p>
+<p>По какому правилу определяется месяц отнесения операции к расходам: по дате совершения покупки в Алматы (п. Ф-2) или по дате проведения/клиринга операции (Критерий приёмки №2)?</p>
+<p>Варианты ответа: а) По дате совершения покупки клиентом (по Алматы); б) По дате фактического проведения (клиринга) операции; в) другое: уточните</p>
+<p><em>Почему важно:</em> Противоречие между Ф-2 и критерием приёмки №2 приводит к неверному расчёту месячного бюджета и невозможности написать однозначные автотесты.</p>
+<p><em>Связано:</em> F-01, R-05 (Ф-2), R-13 (Критерий приёмки 2)</p>
+<p><strong>Q-02 · Высокий приоритет · кому: Product Owner / Бизнес-аналитик</strong></p>
+<p>Отправляется ли повторный push в текущем месяце, если клиент изменил порог расходов, когда ранее по прежней настройке push уже отправлялся (п. Ф-3 заявляет «максимум один push в месяц», а п. Ф-4 — «независимо от истории предыдущей настройки»)?</p>
+<p>Варианты ответа: а) Лимит 1 push в месяц строгий: повторный push не отправляется ни при каких условиях; б) Изменение порога сбрасывает лимит: при новом достижении отправляется ещё один push; в) другое: уточните</p>
+<p><em>Почему важно:</em> Прямое противоречие двух бизнес-правил блокирует проектирование логики отправки уведомлений и тест-дизайн.</p>
+<p><em>Связано:</em> F-02, R-06 (Ф-3), R-07 (Ф-4)</p>
+<p><strong>Q-03 · Высокий приоритет · кому: Бизнес-аналитик</strong></p>
+<p>Каково поведение системы, если клиент включает уведомление или изменяет порог в середине месяца, когда его расходы уже равны новому порогу или превышают его (п. Ф-1, Ф-4)?</p>
+<p>Варианты ответа: а) Push отправляется мгновенно при сохранении настройки; б) Push отправляется только при совершении следующей покупки в этом месяце; в) Push не отправляется до следующего месяца; г) другое: уточните</p>
+<p><em>Почему важно:</em> Не описан ключевой сценарий включения/изменения настроек «поверх» уже накопленной суммы расходов.</p>
+<p><em>Связано:</em> F-08, R-04 (Ф-1), R-06 (Ф-3), R-07 (Ф-4)</p>
+<p><strong>Q-04 · Средний приоритет · кому: Системный аналитик / Бизнес-владелец</strong></p>
+<p>Как должны отражаться возвраты прошлых периодов (п. Ф-2 говорит «уменьшает расходы месяца исходной покупки»): корректируется ли закрытый прошлый месяц или сумма вычитается из текущего месяца?</p>
+<p>Варианты ответа: а) Уменьшаются расходы текущего месяца (месяца проведения возврата); б) Корректируется прошлый месяц (без повторной отправки push); в) другое: уточните</p>
+<p><em>Почему важно:</em> Изменение итогов закрытого периода может потребовать сложных перерасчетов, а в модель данных не добавлены атрибуты связи с исходной операцией.</p>
+<p><em>Связано:</em> F-09, F-13, R-05 (Ф-2), R-10 (Данные)</p>
+<p><strong>Q-05 · Средний приоритет · кому: Бизнес-владелец / Аналитик</strong></p>
+<p>Какие типы операций и валюты входят в расчёт месячного порога (п. Ф-2): учитываются ли покупки в иностранной валюте (и по какому курсу), комиссии и квази-кэш?</p>
+<p>Варианты ответа: а) Только покупки в KZT; комиссии и квази-кэш исключаются; б) Покупки в любой валюте по курсу на момент проведения + комиссии; в) другое: уточните</p>
+<p><em>Почему важно:</em> Неполнота классификации операций приведет к расхождениям в расчете расходов между сервисом и клиентом.</p>
+<p><em>Связано:</em> F-10, F-11, R-05 (Ф-2)</p>
+<p><strong>Q-06 · Средний приоритет · кому: Архитектор / Информационная безопасность</strong></p>
+<p>Какой HTTP-метод и способ передачи параметров должен использовать метод <code>/alerts/saveLimit</code> (Раздел REST API)?</p>
+<p>Варианты ответа: а) Метод POST или PUT с передачей JSON-тела в Request Body; б) Метод POST с URL-encoded параметрами; в) другое: уточните</p>
+<p><em>Почему важно:</em> Использование GET-метода для изменения данных с передачей параметров в URL нарушает стандарты REST API и создает риски безопасности.</p>
+<p><em>Связано:</em> F-18, F-19, F-22, R-11 (Интеграция), R-15 (API Логика), R-17 (API Параметры)</p>
+<p><strong>Q-07 · Средний приоритет · кому: Команда разработки / Архитектор</strong></p>
+<p>Каким HTTP-кодом ответа должна сопровождаться ошибка валидации порога при запросе к API (Раздел REST API)?</p>
+<p>Варианты ответа: а) HTTP статус 400 Bad Request; б) HTTP статус 200 OK с полем result: ERROR; в) другое: уточните</p>
+<p><em>Почему важно:</em> Возврат ошибки бизнес-логики со статусом HTTP 200 OK (<code>{"result":"ERROR"}</code>) противоречит спецификации статусов 400 Bad Request.</p>
+<p><em>Связано:</em> F-20, R-15 (API Логика), R-18 (API Ошибки)</p>
+<p><strong>Q-08 · Средний приоритет · кому: Системный аналитик</strong></p>
+<p>В каких единицах измерения и типах данных должны передаваться и храниться суммы порогов и операций (п. Требования к данным, Параметры запроса)?</p>
+<p>Варианты ответа: а) Везде целое число в тенге (integer); б) Суммы операций в тиынах (integer), порог в тенге (integer); в) другое: уточните</p>
+<p><em>Почему важно:</em> В модели данных сумма операций указана в тиынах, а порог — в тенге; в API параметры запроса integer, а ответа — string.</p>
+<p><em>Связано:</em> F-15, F-21, R-10 (Данные), R-17 (API Параметры)</p>
+<p><strong>Q-09 · Средний приоритет · кому: Разработчик / Архитектор</strong></p>
+<p>Какой атрибут используется в качестве ключа идемпотентности при повторной доставке событий от карточного процессинга (п. Требования к интеграции)?</p>
+<p>Варианты ответа: а) Уникальный <code>operation_id</code> (идентификатор операции процессинга); б) Составной ключ (<code>card_id</code> + <code>amount</code> + <code>timestamp</code>); в) другое: уточните</p>
+<p><em>Почему важно:</em> Без точного ключа идемпотентности возможна повторная обработка дубликатов транзакций и ошибочный пересчёт суммы.</p>
+<p><em>Связано:</em> F-16, R-11 (Интеграция)</p>
+<p><strong>Q-10 · Низкий приоритет · кому: UX/UI Дизайнер / Бизнес-аналитик</strong></p>
+<p>Каковы тексты сообщений об ошибках UI и поведение кнопки «Сохранить» при некорректном вводе порога (п. Дизайн процесса UI)?</p>
+<p>Варианты ответа: а) Кнопка «Сохранить» недоступна, под полем выводится текст: «Введите сумму от 1 000 до 1 000 000 ₸»; б) Ошибка валидации выводится только при нажатии кнопки «Сохранить»; в) другое: уточните</p>
+<p><em>Почему важно:</em> Отсутствие текста ошибок и состояний элементов UI делает требование неполным для фронтенд-разработки и тестирования.</p>
+<p><em>Связано:</em> F-04, R-02 (UI)</p>
+<h2>6. Чек-лист ревью требований (заполнен агентом)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Пункт чек-листа</th>
+<th style="text-align: center;">Оценка агента</th>
+<th style="text-align: left;">Обоснование</th>
+<th style="text-align: left;">Замечания</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Техническое требование зафиксировано и покрывает бизнес-требование</td>
+<td style="text-align: center;">Частично</td>
+<td style="text-align: left;">Цель «узнать о достижении личного бюджета в момент покупки» (L0023) не полностью покрывается нефункциональным требованием с допуском задержки push до 1 минуты (L0046), а также содержатся пробелы в обработке возвратов и операций в валюте.</td>
+<td style="text-align: left;">F-03, F-08, F-10, F-11</td>
+</tr>
+<tr>
+<td style="text-align: left;">Функциональная спецификация имеет структурированное описание (по стандарту, шаблону)</td>
+<td style="text-align: center;">Частично</td>
+<td style="text-align: left;">Разделы спецификации присутствуют, однако метаданные документа не заполнены (L0068), а у части блоков отсутствуют сквозные идентификаторы требований (L0023, L0029, L0034).</td>
+<td style="text-align: left;">F-23, F-24</td>
+</tr>
+<tr>
+<td style="text-align: left;">Sequence-диаграммы, предусмотрены взаимодействия систем, компонентов и решений</td>
+<td style="text-align: center;">Да</td>
+<td style="text-align: left;">В документе приведено текстовое описание Sequence Diagram (L0042–L0043), описывающее взаимодействие Процессинга, Сервиса расходов, Настроек и Push-сервиса.</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;">Требование покрывает спецификацию UX/UI дизайна</td>
+<td style="text-align: center;">Частично</td>
+<td style="text-align: left;">Описан состав элементов экрана (L0029), но отсутствуют тексты сообщений об ошибках, правила блокировки кнопки «Сохранить» и макеты интерфейса.</td>
+<td style="text-align: left;">F-04</td>
+</tr>
+<tr>
+<td style="text-align: left;">Реализация задачи/проекта предусматривает схему отката решений</td>
+<td style="text-align: center;">Нет</td>
+<td style="text-align: left;">В строке чек-листа ревью указано «При невозможности отката — варианты скрытия функционала» (L0076), однако сам порядок отката или механизм feature toggle в документе не описан.</td>
+<td style="text-align: left;">F-17</td>
+</tr>
+<tr>
+<td style="text-align: left;">Требование может быть протестировано</td>
+<td style="text-align: center;">Частично</td>
+<td style="text-align: left;">Требования Ф-1 и Ф-4 не покрыты критериями приёмки (L0061–L0065), а нефункциональное требование по времени доставки push не содержит целевого перцентиля (L0046).</td>
+<td style="text-align: left;">F-07, F-14</td>
+</tr>
+<tr>
+<td style="text-align: left;">Требование предусматривает модель данных или поток, содержит описание</td>
+<td style="text-align: center;">Частично</td>
+<td style="text-align: left;">Требования к данным приведены (L0049), но не содержат ключевых полей для связывания возврата с исходной операцией (<code>parent_operation_id</code>), а также смешивают единицы измерения (тиыны и тенге).</td>
+<td style="text-align: left;">F-13, F-15</td>
+</tr>
+<tr>
+<td style="text-align: left;">Требование не имеет противоречий или явных показателей операционных рисков</td>
+<td style="text-align: center;">Нет</td>
+<td style="text-align: left;">Обнаружены критические противоречия между Ф-2 и Критерием приёмки №2 по дате проведения операции (L0038, L0064), а также между Ф-3 и Ф-4 по повторной отправке push (L0039, L0040).</td>
+<td style="text-align: left;">F-01, F-02</td>
+</tr>
+<tr>
+<td style="text-align: left;">Требование содержит архитектуру и согласовано с архитекторами</td>
+<td style="text-align: center;">Частично</td>
+<td style="text-align: left;">Архитектура решения описана верхнеуровнево (L0025–L0026), но блок согласующих лиц не заполнен (L0089–L0092).</td>
+<td style="text-align: left;">F-24</td>
+</tr>
+<tr>
+<td style="text-align: left;">Все изменения, влияющие на иные продукты/системы в требовании, согласованы с ответственными лицами</td>
+<td style="text-align: center;">Нет данных</td>
+<td style="text-align: left;">Блок согласующих в источнике не заполнен, подписи ответственных лиц отсутствуют (L0089–L0092).</td>
+<td style="text-align: left;">F-24</td>
+</tr>
+<tr>
+<td style="text-align: left;">Структура требований не несёт изменений и рисков информационной безопасности</td>
+<td style="text-align: center;">Нет</td>
+<td style="text-align: left;">Спецификация API передает чувствительные параметры изменения лимита в открытых query-параметрах GET-запроса (L0104, L0109), создавая риск утечки данных в логах веб-серверов.</td>
+<td style="text-align: left;">F-19</td>
+</tr>
+<tr>
+<td style="text-align: left;">В требовании присутствует схема полного бизнес-процесса и часть реализуемой доработки</td>
+<td style="text-align: center;">Частично</td>
+<td style="text-align: left;">BPMN-схема описывает только положительный сценарий (L0034), альтернативные ветви (недостижение порога, отключенные уведомления, сбои) отсутствуют.</td>
+<td style="text-align: left;">F-05</td>
+</tr>
+<tr>
+<td style="text-align: left;">Требование носит интеграционный характер и имеет четкую постановку реализации интеграционного взаимодействия</td>
+<td style="text-align: center;">Нет</td>
+<td style="text-align: left;">Спецификация REST API содержит многочисленные ошибки: неверный HTTP-метод GET для записи (L0104), возврат статуса HTTP 200 при ошибках (L0171), нестыковка типов данных (L0143, L0156).</td>
+<td style="text-align: left;">F-18, F-20, F-21, F-22</td>
+</tr>
+<tr>
+<td style="text-align: left;">Поддерживается версионность документа / зафиксирована</td>
+<td style="text-align: center;">Нет</td>
+<td style="text-align: left;">Раздел ревью содержит явное указание: «Документ (версия/дата) в источнике не заполнен» (L0068).</td>
+<td style="text-align: left;">F-24</td>
+</tr>
+</tbody>
+</table>
+<h2>7. Сводка</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Показатель</th>
+<th style="text-align: right;">Значение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Требований выделено</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td style="text-align: left;">Требований с замечаниями</td>
+<td style="text-align: right;">16</td>
+</tr>
+<tr>
+<td style="text-align: left;">Подтверждённых нарушений</td>
+<td style="text-align: right;">25</td>
+</tr>
+<tr>
+<td style="text-align: left;">из них критичных</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;">из них существенных</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: left;">из них незначительных</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;">Сигналов автоматических правил</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;">Отклонено замечаний (верификатор и критик)</td>
+<td style="text-align: right;">22</td>
+</tr>
+<tr>
+<td style="text-align: left;">Уточняющих вопросов (высокий приоритет)</td>
+<td style="text-align: right;">10 (3)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Нарушения по типам:</strong> Неполные — 13, Противоречивые — 7, Непроверяемые — 2, Прочие — 2, Неоднозначные — 1.</p>
+<h3>Критичные дефекты</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">ID</th>
+<th style="text-align: left;">Тип</th>
+<th style="text-align: left;">Дефект</th>
+<th style="text-align: left;">Требования</th>
+<th style="text-align: left;">Где</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">F-01</td>
+<td style="text-align: left;">Противоречивые</td>
+<td style="text-align: left;">Противоречие между Ф-2 и критерием приемки по дате проведения</td>
+<td style="text-align: left;">R-05 (Ф-2), R-13 (Критерий приёмки 2)</td>
+<td style="text-align: left;">строки 38, 64</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-02</td>
+<td style="text-align: left;">Противоречивые</td>
+<td style="text-align: left;">Конфликт правил лимита push в месяц и изменения настройки</td>
+<td style="text-align: left;">R-06 (Ф-3), R-07 (Ф-4)</td>
+<td style="text-align: left;">строки 39, 40</td>
+</tr>
+</tbody>
+</table>
+<h3>Существенные дефекты</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">ID</th>
+<th style="text-align: left;">Тип</th>
+<th style="text-align: left;">Дефект</th>
+<th style="text-align: left;">Где</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">F-03</td>
+<td style="text-align: left;">Непроверяемые</td>
+<td style="text-align: left;">Размытая формулировка «в момент покупки» в цели</td>
+<td style="text-align: left;">строки 23, 46</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-04</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Неполное описание валидации и ошибок UI</td>
+<td style="text-align: left;">строка 29</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-05</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Неполнота описания BPMN-процесса</td>
+<td style="text-align: left;">строка 34</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-06</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Не описано: FIN-ORDER — Событие проведения покупки приходит раньше события отмены или с задержкой в неск</td>
+<td style="text-align: left;">строка 34</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-07</td>
+<td style="text-align: left;">Прочие</td>
+<td style="text-align: left;">Функциональные требования без критериев приёмки</td>
+<td style="text-align: left;">строки 37, 40</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-08</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Не описано: FIN-STATE — Клиент включает уведомление в середине месяца, когда его расходы уже составляют</td>
+<td style="text-align: left;">строки 37, 40</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-09</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Неполное описание логики возвратов прошлых периодов</td>
+<td style="text-align: left;">строка 38</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-10</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Не описано: FIN-CURRENCY — Клиент совершает покупку в валюте, отличной от KZT. Не указано, по какому курсу</td>
+<td style="text-align: left;">строка 38</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-11</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Не описано: FIN-CLASSIFY — Клиент совершает платеж или с него списывается комиссия. Из текста требования Ф-</td>
+<td style="text-align: left;">строка 38</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-12</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Не описано: FIN-REVERSAL — Сумма расходов превысила порог, push отправлен. Затем поступил возврат, и расход</td>
+<td style="text-align: left;">строки 38, 39</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-13</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Не описано: DOC-DATA — Модель данных хранит операции, но не содержит поля <code>parent_operation_id</code> или ссы</td>
+<td style="text-align: left;">строки 38, 49</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-14</td>
+<td style="text-align: left;">Непроверяемые</td>
+<td style="text-align: left;">Неизмеримое требование к времени отправки push-уведомлений</td>
+<td style="text-align: left;">строка 46</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-15</td>
+<td style="text-align: left;">Неоднозначные</td>
+<td style="text-align: left;">Разные единицы измерения денежных сумм в модели данных</td>
+<td style="text-align: left;">строка 49</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-16</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Не определен ключ идемпотентности при повторной доставке события</td>
+<td style="text-align: left;">строка 52</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-17</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Не описано: DOC-ROLLBACK — В случае сбоя карточного процессинга или сервиса уведомлений в документе не регл</td>
+<td style="text-align: left;">строка 76</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-18</td>
+<td style="text-align: left;">Противоречивые</td>
+<td style="text-align: left;">Нарушено правило API-SEMANTICS — Метод <code>/alerts/saveLimit</code> предназначен для модификации данных (сохранение порога</td>
+<td style="text-align: left;">строки 103, 104, 108</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-19</td>
+<td style="text-align: left;">Неполные</td>
+<td style="text-align: left;">Не описано: NFR-SECURITY — Параметры управления лимитом передаются через GET query-параметры в URL, что соз</td>
+<td style="text-align: left;">строка 109</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-20</td>
+<td style="text-align: left;">Противоречивые</td>
+<td style="text-align: left;">Возврат ошибки бизнес-логики с кодом HTTP 200 OK</td>
+<td style="text-align: left;">строки 121, 171</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-21</td>
+<td style="text-align: left;">Противоречивые</td>
+<td style="text-align: left;">Несоответствие типов полей amount и enabled в запросе и ответе</td>
+<td style="text-align: left;">строки 143, 156</td>
+</tr>
+<tr>
+<td style="text-align: left;">F-22</td>
+<td style="text-align: left;">Противоречивые</td>
+<td style="text-align: left;">Нарушено правило API-HEADERS — Спецификация указывает <code>Content-Type: application/json</code> при `Тело не используетс</td>
+<td style="text-align: left;">строки 147, 148</td>
+</tr>
+</tbody>
+</table>
+<h2>8. Итог</h2>
+<p><strong>Можно ли начинать разработку:</strong> нет. <strong>Можно ли начинать тестирование (тест-дизайн):</strong> нет.</p>
+<p>Документ содержит два критических противоречия в ключевой бизнес-логике (определение месяца операции для расчёта бюджета и правила отправки push при изменении порога), а также существенные ошибки в спецификации REST API и информационной безопасности. Начинать разработку и тестирование до устранения дефектов нельзя, так как реализация приведет к некорректным финансовым расчетам и переделкам.</p>
+<p>Правило решения: есть критичный дефект → «нет»; есть только существенные → «условно»; только незначительные → «да» (<code>methodology/severity.md</code>).</p>
+<p><strong>Что исправить в первую очередь:</strong></p>
+<ol>
+<li>Устранить противоречие между Ф-2 и Критерием приёмки №2 (F-01): зафиксировать единый подход к определению месяца операции (по дате совершения или дате клиринга).</li>
+<li>Устранить конфликт между Ф-3 и Ф-4 (F-02): четко определить, отправляется ли push при изменении порога, если в текущем месяце лимит push уже исчерпан.</li>
+<li>Исправить REST API спецификацию (F-18, F-19, F-22): изменить HTTP-метод сохраняющего запроса <code>/alerts/saveLimit</code> с GET на POST/PUT, перенести параметры из Query в JSON Request Body.</li>
+<li>Исправить обработку ошибок в API (F-20): при ошибке валидации возвращать корректный HTTP-статус 400 Bad Request вместо HTTP 200 OK с <code>result: ERROR</code>.</li>
+<li>Дополнить правила расчёта расходов (F-08, F-09, F-12): описать сценарии включения опции в середине месяца, обработки возвратов прошлых периодов и повторных превышений порога.</li>
+<li>Привести в соответствие единицы измерения и типы данных (F-15, F-21): унифицировать типы полей (integer/string) в API и единицы хранения денег (тенге/тиыны) в модели данных.</li>
+<li>Заполнить метаданные документа и критерии приёмки для требований Ф-1 и Ф-4 (F-07, F-24).</li>
+</ol>
+<h2>Приложение А. Автоматические проверки без ИИ</h2>
+<p>Правила-шаблоны (<code>tz_auditor/rules.py</code>) работают без модели и дают одинаковый результат при каждом запуске.</p>
+<p><strong>[RULE-TBD] Незаполненные разделы и заглушки</strong> (Существенный, строки 57, 68). В документе есть пометки о том, что содержание будет добавлено позже.</p>
+<blockquote>
+<p>заполняются тестировщиками
+Документ (версия/дата) в источнике не заполнен. Пункты чек-листа приведены как в шаблоне, отметки не проставлены.</p>
+</blockquote>
+<p><strong>[RULE-CHECKLIST] Варианты «Да / Нет» без выбора</strong> (Незначительный, строки 72, 73, 74, 75, 76, 77 …). В 14 строках остались варианты ответа шаблона без выбора: чек-лист не заполнен. Всего совпадений: 14.</p>
+<blockquote>
+<p>| Техническое требование зафиксировано и покрывает бизнес-требование | Да / Нет | Да / Нет | |
+| Функциональная спецификация имеет структурированное описание (по стандарту, шаблону) | Да / Нет | Да / Нет | |
+| Sequence-диаграммы, предусмотрены взаимодействия систем, компонентов и решений | Да / Нет / Не требуется | Да / Нет / Не требуется | |</p>
+</blockquote>
+<p><strong>[RULE-EMPTY] Пустые поля в таблицах</strong> (Незначительный, строки 110, 155, 158, 91). Поля шаблона заполнены прочерком или пустые строки таблиц.</p>
+<blockquote>
+<p>| <strong>Swagger</strong> | — |
+| <code>result</code> | string | OK / ERROR | Исход сохранения | — |
+| <code>message</code> | string | При ошибке | Описание ошибки | — |</p>
+</blockquote>
+<p><strong>[RULE-UNITS] Суммы в разных единицах</strong> (Существенный, строки 49, 29, 37). Суммы встречаются и в основной единице, и в дробной («тиын…»). Нужно проверить, описан ли пересчёт при сравнении сумм.</p>
+<blockquote>
+<p>Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге.
+Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При ошибке ввода сообщение появляется под полем.
+* <strong>Ф-1.</strong> Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно. По умолчанию уведомление выключено.</p>
+</blockquote>
+<p><strong>[RULE-NFR] Срок без измеримого критерия</strong> (Существенный, строка 46). Срок указан без доли случаев (перцентиля), условий нагрузки или явной точки отсчёта.</p>
+<blockquote>
+<p>Сервис передаёт push на отправку в течение минуты после получения события.</p>
+</blockquote>
+<p><strong>[RULE-VERSION] Не указана версия документа</strong> (Незначительный, строки 68, 85). Номер версии документа не найден.</p>
+<blockquote>
+<p>Документ (версия/дата) в источнике не заполнен. Пункты чек-листа приведены как в шаблоне, отметки не проставлены.
+| Поддерживается версионность документа / зафиксирована | Да / Нет | Да / Нет | |</p>
+</blockquote>
+<p><strong>[RULE-ID] 14 из 18 требований без идентификатора</strong> (Незначительный, строки 23, 29, 34, 43, 46, 49 …). У требований R-01 (Цель), R-02 (UI), R-03 (Процесс), R-08 (Sequence Diagram), R-09 (НФТ), R-10 (Данные), R-11 (Интеграция), R-12 (Критерий приёмки 1), R-13 (Критерий приёмки 2), R-14 (Критерий приёмки 3), R-15 (API Логика), R-16 (API Правила), R-17 (API Параметры), R-18 (API Ошибки) нет собственного номера в документе: на них нельзя сослаться в тестах, задачах и при изменениях (IEEE 830, п. 4.3, прослеживаемость).</p>
+<blockquote>
+<p>Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.
+Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При ошибке ввода сообщение появляе
+Проведение покупки → пересчёт расходов → проверка порога → при достижении отправка push → завершение.</p>
+</blockquote>
+<h2>Приложение Б. Отклонённые замечания</h2>
+<p>Замечания, которые агент нашёл, но не включил в отчёт: цитата не подтвердилась в тексте или критик признал их ложными или дублями. Показаны для прозрачности.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">ID</th>
+<th style="text-align: left;">Замечание</th>
+<th style="text-align: left;">Причина отклонения</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">X-01</td>
+<td style="text-align: left;">Сценарий даёт разный результат по разным пунктам: Передача некорректной суммы порога (например, 500 ₸) в REST API метод /alerts/saveLimit</td>
+<td style="text-align: left;">отклонено верификатором: «1. Проверить пользовательскую сессию. 2. Проверить принадлеж»: цитата не найдена в документе (лучшее совпадение 74%); одна цитата уточнена по точному тексту документа</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-02</td>
+<td style="text-align: left;">Противоречие между критерием приёмки R-13 и функциональным требованием Ф-2</td>
+<td style="text-align: left;">дубль замечания «Противоречие между Ф-2 и критерием приемки по дате проведения». Дубликат P-01 (противоречие Ф-2 и критерия R-13 по дате совершения/проведения).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-03</td>
+<td style="text-align: left;">Противоречие HTTP-кода 403 в заголовке раздела и 404 в требовании</td>
+<td style="text-align: left;">дубль замечания «Возврат ошибки бизнес-логики с кодом HTTP 200 OK». Дубликат замечания P-30 о противоречии заголовка 403 и кода 404 в тексте.</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-04</td>
+<td style="text-align: left;">Критерий приёмки (Критерий приёмки 2) противоречит требованиям</td>
+<td style="text-align: left;">дубль замечания «Противоречие между Ф-2 и критерием приемки по дате проведения». Дубликат P-01 (противоречие между датой совершения в Ф-2 и датой проведения в R-13).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-05</td>
+<td style="text-align: left;">Не описано: FIN-ROUNDING — Не указано, как тиыны суммируются и сопоставляются с целым порогом в тенге при п</td>
+<td style="text-align: left;">дубль замечания «Разные единицы измерения денежных сумм в модели данных». Дубликат P-09 (расхождение тиынов в операциях и тенге в пороге).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-06</td>
+<td style="text-align: left;">Нарушено правило FIN-CUTOFF — Покупка совершена 31 января, но проведена 1 февраля. Требование Ф-2 относит ее к</td>
+<td style="text-align: left;">дубль замечания «Противоречие между Ф-2 и критерием приемки по дате проведения». Дубликат P-01 (противоречие cutoff date между Ф-2 и критерием 2).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-07</td>
+<td style="text-align: left;">Не описано: FIN-PERIOD-CLOSE — В текущем месяце поступает возврат за покупку, совершенную в прошлом месяце. Не</td>
+<td style="text-align: left;">дубль замечания «Неполное описание логики возвратов прошлых периодов». Дубликат P-06 (обработка возвратов прошлых периодов).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-08</td>
+<td style="text-align: left;">Не описано: FIN-IDEMPOTENCY — Приходит повторное событие процессинга. Документ не указывает, по какому полю (н</td>
+<td style="text-align: left;">дубль замечания «Не определен ключ идемпотентности при повторной доставке события». Дубликат P-10 (отсутствие ключа идемпотентности).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-09</td>
+<td style="text-align: left;">Нарушено правило FIN-CONFLICT — В текущем месяце push уже отправлялся. Клиент меняет порог, расходы снова ниже п</td>
+<td style="text-align: left;">дубль замечания «Конфликт правил лимита push в месяц и изменения настройки». Дубликат P-02 (конфликт Ф-3 и Ф-4 при изменении порога).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-10</td>
+<td style="text-align: left;">Не описано: NFR-MEASURABLE — Не указано, в каком проценте случаев (например, 99% перцентиль) выдерживается ли</td>
+<td style="text-align: left;">дубль замечания «Неизмеримое требование к времени отправки push-уведомлений». Дубликат P-08 (отсутствие перцентиля в НФТ времени push).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-11</td>
+<td style="text-align: left;">Нарушено правило API-STATUS — При ошибке бизнес-логики метод возвращает HTTP status 200 OK с JSON `{"result":"</td>
+<td style="text-align: left;">дубль замечания «Возврат ошибки бизнес-логики с кодом HTTP 200 OK». Дубликат P-12 в части ответа 200 OK при ошибках и P-14 в части путаницы 403/404.</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-12</td>
+<td style="text-align: left;">Нарушено правило API-CONTRACT — Поле <code>amount</code> в запросе заявлено как integer, а в ответе — как string. Документ</td>
+<td style="text-align: left;">дубль замечания «Несоответствие типов полей amount и enabled в запросе и ответе». Дубликат P-13 (расхождение типов integer/string между запросом и ответом).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-13</td>
+<td style="text-align: left;">Не описано: DOC-TRACE — Нет критериев приемки для проверки установки порога вне диапазона 1000–1000000 ₸</td>
+<td style="text-align: left;">дубль замечания «Функциональные требования без критериев приёмки». Дубликат P-16 (отсутствие критериев приемки для Ф-1 и Ф-4).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-14</td>
+<td style="text-align: left;">Требования Ф-3 и Ф-4 дают несовместимый результат</td>
+<td style="text-align: left;">дубль замечания «Конфликт правил лимита push в месяц и изменения настройки». Дубликат P-02 (противоречие Ф-3 и Ф-4 при превышении порога после изменения).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-15</td>
+<td style="text-align: left;">Сценарий даёт разный результат по разным пунктам: Покупка совершена в конце месяца, а проведена по процессингу в начале следующего месяца</td>
+<td style="text-align: left;">дубль замечания «Противоречие между Ф-2 и критерием приемки по дате проведения». Дубликат P-01 (противоречие Ф-2 и R-13 по дате отнесения покупки к месяцу).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-16</td>
+<td style="text-align: left;">Сценарий не описан: Повторное превышение порога в том же месяце после проведения возврата товара</td>
+<td style="text-align: left;">дубль замечания «Не описано: FIN-REVERSAL — Сумма расходов превысила порог, push отправлен. Затем поступил возврат, и расход». Дубликат P-22 (повторное превышение порога в том же месяце после возврата).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-17</td>
+<td style="text-align: left;">Сценарий даёт разный результат по разным пунктам: Изменение порога на меньший, когда push в текущем месяце УЖЕ был отправлен по старому поро</td>
+<td style="text-align: left;">дубль замечания «Конфликт правил лимита push в месяц и изменения настройки». Дубликат P-02 (конфликт правил Ф-3 и Ф-4 при снижении порога).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-18</td>
+<td style="text-align: left;">Сценарий не описан: Включение уведомлений в середине месяца, когда накопленные расходы уже выше задаваемого по</td>
+<td style="text-align: left;">дубль замечания «Не описано: FIN-STATE — Клиент включает уведомление в середине месяца, когда его расходы уже составляют ». Дубликат P-25 (не описан сценарий включения опции при уже превышенном расходе).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-19</td>
+<td style="text-align: left;">[RULE-TBD] Незаполненные разделы и заглушки</td>
+<td style="text-align: left;">дубль замечания «Нарушено правило DOC-HYGIENE — Раздел ревью и блок согласующих оставлены в виде шаблонов без проставления итого». Дубликат P-36 (незаполненные шаблоны и блоки ревью/тестирования).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-20</td>
+<td style="text-align: left;">[RULE-UNITS] Суммы в разных единицах</td>
+<td style="text-align: left;">дубль замечания «Разные единицы измерения денежных сумм в модели данных». Дубликат P-09 (различные единицы измерения сумм — тиыны и тенге).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-21</td>
+<td style="text-align: left;">[RULE-NFR] Срок без измеримого критерия</td>
+<td style="text-align: left;">дубль замечания «Неизмеримое требование к времени отправки push-уведомлений». Дубликат P-08 (неизмеримый срок доставки push без условий нагрузки и перцентилей).</td>
+</tr>
+<tr>
+<td style="text-align: left;">X-22</td>
+<td style="text-align: left;">[RULE-ID] 14 из 18 требований без идентификатора</td>
+<td style="text-align: left;">дубль замечания «Отсутствие идентификаторов у требований». Дубликат P-07 (отсутствие идентификаторов у большинства требований).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>ТЗ-Аудитор 1.0.0 (вне git). Модель gemini-3.5-flash. 2026-11-27 15:52:49 Кызылорда (зима).</em></p></body></html>

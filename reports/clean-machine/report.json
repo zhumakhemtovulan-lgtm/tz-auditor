@@ -1,0 +1,3663 @@
+{
+ "passport": {
+  "document_name": "requirements.md",
+  "document_title": "Уведомление о расходах по карте",
+  "document_path": "docs\\requirements.md",
+  "document_sha256": "e7dae55e5453a250d93e335f5ff9c7f775f4457ccddd333f4a67e47b20d74381",
+  "document_format": "MD",
+  "run_started": "2026-11-27 15:40:45 Кызылорда (зима)",
+  "run_finished": "2026-11-27 15:52:49 Кызылорда (зима)",
+  "duration_sec": 724.0,
+  "provider": "gemini",
+  "model": "gemini-3.5-flash",
+  "agent_version": "1.0.0 (вне git)",
+  "llm_calls": 14,
+  "tokens_in": 133041,
+  "tokens_out": 42440,
+  "cache_hits": 0,
+  "warnings": []
+ },
+ "requirements": [
+  {
+   "rid": "R-01",
+   "doc_id": "(Цель)",
+   "section": "Цели",
+   "kind": "цель",
+   "summary": "Информирование клиента о достижении личного бюджета в момент покупки.",
+   "quote": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.",
+   "lines": [
+    23
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-02",
+   "doc_id": "(UI)",
+   "section": "Дизайн процесса UI",
+   "kind": "UI",
+   "summary": "Состав элементов экрана настроек и отображение ошибки ввода.",
+   "quote": "Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При ошибке ввода сообщение появляется под полем.",
+   "lines": [
+    29
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-03",
+   "doc_id": "(Процесс)",
+   "section": "BPMN схема процесса",
+   "kind": "процесс",
+   "summary": "Последовательность выполнения операций от покупки до отправки push.",
+   "quote": "Проведение покупки → пересчёт расходов → проверка порога → при достижении отправка push → завершение.",
+   "lines": [
+    34
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-04",
+   "doc_id": "Ф-1",
+   "section": "Функциональные требования",
+   "kind": "функциональное",
+   "summary": "Правила задания порога расходов держателем активной карты KZT.",
+   "quote": "* **Ф-1.** Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно. По умолчанию уведомление выключено.",
+   "lines": [
+    37
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-05",
+   "doc_id": "Ф-2",
+   "section": "Функциональные требования",
+   "kind": "функциональное",
+   "summary": "Правила учёта проведённых покупок и возвратов в месячных расходах.",
+   "quote": "* **Ф-2.** Месяц определяется по дате совершения покупки в Алматы. В расходы входят проведённые покупки. Возврат уменьшает расходы месяца исходной покупки. Переводы и снятие наличных исключаются.",
+   "lines": [
+    38
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-06",
+   "doc_id": "Ф-3",
+   "section": "Функциональные требования",
+   "kind": "функциональное",
+   "summary": "Условия и лимит отправки push-уведомлений за календарный месяц.",
+   "quote": "* **Ф-3.** Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push. На карту приходится максимум один такой push за календарный месяц.",
+   "lines": [
+    39
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-07",
+   "doc_id": "Ф-4",
+   "section": "Функциональные требования",
+   "kind": "функциональное",
+   "summary": "Поведение системы при изменении порога накопленных расходов.",
+   "quote": "* **Ф-4.** При изменении порога накопленная сумма сохраняется. Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки.",
+   "lines": [
+    40
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-08",
+   "doc_id": "(Sequence Diagram)",
+   "section": "Sequence Diagram",
+   "kind": "интеграция",
+   "summary": "Взаимодействие сервисов при обработке покупки и достижении порога.",
+   "quote": "Процессинг → сервис расходов: проведена покупка. Сервис расходов → настройки: получить порог карты. Сервис расходов → push: передать последние четыре цифры карты и сумму при достижении порога.",
+   "lines": [
+    43
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-09",
+   "doc_id": "(НФТ)",
+   "section": "Нефункциональные требования",
+   "kind": "нефункциональное",
+   "summary": "Срок передачи push-уведомления на отправку после события.",
+   "quote": "Сервис передаёт push на отправку в течение минуты после получения события.",
+   "lines": [
+    46
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-10",
+   "doc_id": "(Данные)",
+   "section": "Требования к данным",
+   "kind": "данные",
+   "summary": "Перечень хранящихся атрибутов операций и настроек порога.",
+   "quote": "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге.",
+   "lines": [
+    49
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-11",
+   "doc_id": "(Интеграция)",
+   "section": "Требования к интеграции",
+   "kind": "интеграция",
+   "summary": "Интеграция с REST API и требование к идемпотентности обработки событий.",
+   "quote": "Приложение читает и сохраняет настройки через дочерний документ «Уведомление о расходах по карте — REST API». Повторная доставка одного события процессинга сохраняет исходный итог.",
+   "lines": [
+    52
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-12",
+   "doc_id": "(Критерий приёмки 1)",
+   "section": "Критерии приемки",
+   "kind": "критерий приёмки",
+   "summary": "Проведение покупки до достижения порога вызывает отправку push.",
+   "quote": "| Расходы 48 500 ₸, порог 50 000 ₸ | Провести покупку на 1 500 ₸ | Итог 50 000 ₸ и один push |",
+   "lines": [
+    63
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-13",
+   "doc_id": "(Критерий приёмки 2)",
+   "section": "Критерии приемки",
+   "kind": "критерий приёмки",
+   "summary": "Учёт даты проведения покупки по часовому поясу Алматы.",
+   "quote": "| Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸ |",
+   "lines": [
+    64
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-14",
+   "doc_id": "(Критерий приёмки 3)",
+   "section": "Критерии приемки",
+   "kind": "критерий приёмки",
+   "summary": "Исключение денежных переводов из суммы месячных расходов.",
+   "quote": "| Расходы 19 900 ₸, порог 20 000 ₸ | Перевести 500 ₸ | Счётчик показывает 19 900 ₸ |",
+   "lines": [
+    65
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-15",
+   "doc_id": "(API Логика)",
+   "section": "Логика работы метода",
+   "kind": "API",
+   "summary": "Шаги проверки сессии, карты, параметров и сохранения настройки в API.",
+   "quote": "1. Проверить пользовательскую сессию. 2. Проверить принадлежность карты клиенту. 3. Проверить сумму и переключатель. 4. Заменить настройку и вернуть результат сохранения. 5. При отклонении суммы вернуть прежнее состояние и результат ERROR.",
+   "lines": [
+    117,
+    118,
+    119,
+    120,
+    121
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-16",
+   "doc_id": "(API Правила)",
+   "section": "Особые правила",
+   "kind": "API",
+   "summary": "Особые правила валидации порога и сохранения накопленных расходов.",
+   "quote": "1. Целое число тенге, обе границы включены. 2. Повторное сохранение заменяет действующую настройку. 3. Изменение порога сохраняет накопленные расходы.",
+   "lines": [
+    124,
+    125,
+    126
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-17",
+   "doc_id": "(API Параметры)",
+   "section": "Query-параметры",
+   "kind": "API",
+   "summary": "Определения query-параметров cardId, amount и enabled.",
+   "quote": "| `cardId` | string | 1–64 | Да | Карта клиента | Идентификатор карты | `card_id` |\n| `amount` | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | `limit_kzt` |\n| `enabled` | integer | 1 знак | Да | 0 или 1 | Признак включения | `enabled` |",
+   "lines": [
+    142,
+    143,
+    144
+   ],
+   "quote_verified": true
+  },
+  {
+   "rid": "R-18",
+   "doc_id": "(API Ошибки)",
+   "section": "403. Unsuccessful — Forbidden",
+   "kind": "API",
+   "summary": "Возврат ошибки 404 при запросе к чужой или отсутствующей карте.",
+   "quote": "Для чужой карты возвращается 404, как и для отсутствующей карты.",
+   "lines": [
+    189
+   ],
+   "quote_verified": true
+  }
+ ],
+ "assessments": [
+  {
+   "rid": "R-01",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "issue",
+     "comment": "Формулировка «в момент покупки» не содержит точного временного критерия и противоречит нефункциональному требованию."
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "issue",
+     "comment": "Отсутствует измеримый SLA (перцентиль, время добегания push)."
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "issue",
+     "comment": "Отсутствует уникальный идентификатор требования."
+    }
+   ],
+   "verdict": "needs_fix"
+  },
+  {
+   "rid": "R-02",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "issue",
+     "comment": "Не указаны тексты и условия появления сообщений об ошибках."
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "issue",
+     "comment": "Не описаны состояния элементов при выключенном уведомлении и формат отображения суммы."
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "issue",
+     "comment": "Невозможно протестировать отображение ошибки без спецификации валидации."
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "issue",
+     "comment": "Отсутствует уникальный идентификатор требования."
+    }
+   ],
+   "verdict": "needs_fix"
+  },
+  {
+   "rid": "R-03",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "issue",
+     "comment": "Не описаны альтернативные ветви процесса (порог не достигнут, опция выключена)."
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "issue",
+     "comment": "Отсутствует уникальный идентификатор требования."
+    }
+   ],
+   "verdict": "needs_fix"
+  },
+  {
+   "rid": "R-04",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "issue",
+     "comment": "Не описано поведение при изменении статуса карты на неактивный или при смене валюты."
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "needs_fix"
+  },
+  {
+   "rid": "R-05",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "issue",
+     "comment": "Прямое противоречие с таблицей критериев приемки по дате отнесения операции к периоду."
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "issue",
+     "comment": "Не описана обработка возвратов прошлых периодов и влияние на уже отправленные push."
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "issue",
+     "comment": "Невозможно составить однозначный автотест из-за противоречий в условиях отнесения покупки к месяцу."
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "issue",
+     "comment": "Содержит критическое противоречие между датой совершения и датой проведения операции."
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "blocker"
+  },
+  {
+   "rid": "R-06",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "issue",
+     "comment": "Конфликтует с требованием Ф-4 при изменении настроек в течение одного месяца."
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "issue",
+     "comment": "Не описана обработка ситуации, когда возврат снижает сумму ниже порога с последующей повторной покупкой."
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "issue",
+     "comment": "Проверочные сценарии дают противоположные результаты при смене порога в текущем месяце."
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "issue",
+     "comment": "Правило ограничения «максимум один push» вступает в логическое противоречие с правилом Ф-4."
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "blocker"
+  },
+  {
+   "rid": "R-07",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "issue",
+     "comment": "Словесная конструкция «независимо от истории» отменяет лимит из Ф-3 без явного приоритета."
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "issue",
+     "comment": "Тестирование дает разный результат в зависимости от интерпретации правила Ф-3."
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "issue",
+     "comment": "Создает взаимное противоречие ограничений срабатывания."
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "blocker"
+  },
+  {
+   "rid": "R-08",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "issue",
+     "comment": "Не указано, передается ли текст уведомления и уникальный ключ идемпотентности."
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "issue",
+     "comment": "Отсутствует идентификатор требования."
+    }
+   ],
+   "verdict": "needs_fix"
+  },
+  {
+   "rid": "R-09",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "issue",
+     "comment": "Не указаны перцентиль и допустимый уровень нагрузки."
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "issue",
+     "comment": "Отсутствует измеримый показатель (доля случаев, RPS) для проверки."
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "needs_fix"
+  },
+  {
+   "rid": "R-10",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "issue",
+     "comment": "Денежные суммы указаны в разных единицах (тиыны и тенге)."
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "issue",
+     "comment": "Не указано правило пересчета или сравнения суммы в тиынах и порога в тенге."
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "issue",
+     "comment": "Разные единицы измерения создают риск арифметической ошибки при сравнении."
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "needs_fix"
+  },
+  {
+   "rid": "R-11",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "issue",
+     "comment": "Не указан ключ идемпотентности для распознавания повторного события."
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "issue",
+     "comment": "Нельзя однозначно протестировать идемпотентность без описания уникального ключа."
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "needs_fix"
+  },
+  {
+   "rid": "R-12",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "needs_fix"
+  },
+  {
+   "rid": "R-13",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "issue",
+     "comment": "Противоречит Ф-2: операцию отнесли к февралю по дате проведения, а не по дате совершения."
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "blocker"
+  },
+  {
+   "rid": "R-14",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "ok"
+  },
+  {
+   "rid": "R-15",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "issue",
+     "comment": "Возврат результата ERROR происходит с HTTP-кодом 200."
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "issue",
+     "comment": "Не зафиксирован корректный статус HTTP при ошибках валидации."
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "issue",
+     "comment": "Нарушена семантика кодов ответа HTTP."
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "needs_fix"
+  },
+  {
+   "rid": "R-16",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "ok"
+  },
+  {
+   "rid": "R-17",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "issue",
+     "comment": "Типы полей amount и enabled в запросе (integer) противоречат типам этих же полей в описании ответа (string)"
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "ok",
+     "comment": ""
+    }
+   ],
+   "verdict": "needs_fix"
+  },
+  {
+   "rid": "R-18",
+   "scores": [
+    {
+     "criterion": "NECESSARY",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "APPROPRIATE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "UNAMBIGUOUS",
+     "status": "issue",
+     "comment": "Заголовок раздела содержит код 403, а текст требования описывает код 404"
+    },
+    {
+     "criterion": "COMPLETE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "SINGULAR",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "FEASIBLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "VERIFIABLE",
+     "status": "ok",
+     "comment": ""
+    },
+    {
+     "criterion": "CORRECT",
+     "status": "issue",
+     "comment": "Противоречие между HTTP-кодом ошибки в заголовке раздела (403) и описанным поведением (404)"
+    },
+    {
+     "criterion": "CONFORMING",
+     "status": "issue",
+     "comment": "Оформление подраздела 403 некорректно, так как содержит описание статуса 404"
+    }
+   ],
+   "verdict": "needs_fix"
+  }
+ ],
+ "findings": [
+  {
+   "fid": "F-01",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-05",
+    "R-13"
+   ],
+   "criterion": "CORRECT",
+   "rule": "FIN-CUTOFF",
+   "severity": "critical",
+   "title": "Противоречие между Ф-2 и критерием приемки по дате проведения",
+   "description": "Требование Ф-2 прямо указывает, что месяц отнесения операции определяется по дате совершения покупки. В то же время во втором критерии приемки покупка от 31 января, проведенная 1 февраля, увеличивает счетчик февраля (то есть используется дата проведения/клиринга, а не совершения).",
+   "quotes": [
+    "Месяц определяется по дате совершения покупки в Алматы. В расходы входят проведённые покупки.",
+    "Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸"
+   ],
+   "lines": [
+    38,
+    64
+   ],
+   "impact": "Разработчики и тестировщики заложат разную логику учета периода: покупки конца месяца будут либо попадать не в тот месяц, либо ломать критерии приемки при тестировании.",
+   "recommendation": "Согласовать с бизнесом единую дату отнесения к периоду (совершения или проведения) и синхронизировать Ф-2 с таблицей критериев приемки.",
+   "suggested_rewrite": "* **Ф-2.** Месяц определяется по дате совершения покупки по времени Алматы (UTC+5). В расходы входят проведённые покупки, дата совершения которых относится к текущему календарному месяцу.",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": true
+  },
+  {
+   "fid": "F-02",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-06",
+    "R-07"
+   ],
+   "criterion": "UNAMBIGUOUS",
+   "rule": "FIN-CONFLICT",
+   "severity": "critical",
+   "title": "Конфликт правил лимита push в месяц и изменения настройки",
+   "description": "Требование Ф-3 устанавливает жесткое ограничение в 1 push в месяц на карту. Требование Ф-4 указывает, что при изменении порога следующее достижение вызывает push «независимо от истории предыдущей настройки». В сценарии, когда в одном месяце push уже отправлялся, а затем клиент изменил порог и снова его достиг, требования дают противоположные указания.",
+   "quotes": [
+    "На карту приходится максимум один такой push за календарный месяц.",
+    "Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки."
+   ],
+   "lines": [
+    39,
+    40
+   ],
+   "impact": "Неоднозначность при реализации системы информирования: возможен либо спам уведомлениями, либо пропуск уведомления после явного изменения настроек клиентом.",
+   "recommendation": "Указать явный приоритет или правило сброса лимита при изменении настроек порога клиентом.",
+   "suggested_rewrite": "* **Ф-3.** Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push. На одну настройку порога приходится максимум один push за календарный месяц (изменение порога сбрасывает этот лимит).",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": false
+  },
+  {
+   "fid": "F-03",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-01"
+   ],
+   "criterion": "UNAMBIGUOUS",
+   "rule": "NFR-MEASURABLE",
+   "severity": "major",
+   "title": "Размытая формулировка «в момент покупки» в цели",
+   "description": "Формулировка «в момент покупки» не содержит конкретного временного интервала и перцентиля, а также противоречит разделу нефункциональных требований, допускающему задержку передаче push до 1 минуты.",
+   "quotes": [
+    "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.",
+    "Сервис передаёт push на отправку в течение минуты после получения события."
+   ],
+   "lines": [
+    23,
+    46
+   ],
+   "impact": "Невозможно однозначно подтвердить выполнение цели на этапе QA-приемки.",
+   "recommendation": "Уточнить формулировку цели, соотнеся ее с NFR.",
+   "suggested_rewrite": "Дать клиенту возможность получать уведомление о достижении личного бюджета в течение [уточнить: 60] секунд после проведения покупки.",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "Разногласие между формулировкой в цели («в момент покупки») и НФТ («в течение минуты»).",
+   "protected": false
+  },
+  {
+   "fid": "F-04",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-02"
+   ],
+   "criterion": "COMPLETE",
+   "rule": "",
+   "severity": "major",
+   "title": "Неполное описание валидации и ошибок UI",
+   "description": "В требовании к UI указано появление сообщения об ошибке под полем, но отсутствуют тексты сообщений, правила валидации (например, реакция на ввод дробных чисел или букв) и состояние кнопки «Сохранить» при невалидных данных.",
+   "quotes": [
+    "При ошибке ввода сообщение появляется под полем."
+   ],
+   "lines": [
+    29
+   ],
+   "impact": "Формирование некорректного UX, разногласия между дизайнерами, фронтенд-разработчиками и QA.",
+   "recommendation": "Добавить тексты и условия вывода ошибок валидации полей ввода.",
+   "suggested_rewrite": "Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При вводе значения вне диапазона 1 000–1 000 000 ₸ или нецелого числа под полем отображается текст ошибки [уточнить: текст ошибки], а кнопка «Сохранить» становится неактивной.",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "В требованиях UI не описаны конкретные тексты ошибок и валидация поля ввода.",
+   "protected": false
+  },
+  {
+   "fid": "F-05",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-03"
+   ],
+   "criterion": "COMPLETE",
+   "rule": "",
+   "severity": "major",
+   "title": "Неполнота описания BPMN-процесса",
+   "description": "Схема процесса содержит только идеальный сценарий (happy path) и не описывает завершение процесса в случаях, если порог не достигнут или тумблер уведомлений отключен.",
+   "quotes": [
+    "Проведение покупки → пересчёт расходов → проверка порога → при достижении отправка push → завершение."
+   ],
+   "lines": [
+    34
+   ],
+   "impact": "Риск потери альтернативных веток при проектировании архитектуры сервиса и составлении тест-кейсов.",
+   "recommendation": "Дополнить описание процесса условием ветвления при недостижении порога или отключенном сервисе.",
+   "suggested_rewrite": "Проведение покупки → пересчёт расходов → проверка активности уведомления и достижения порога → если условие выполнено и push в текущем периоде не отправлялся, отправка push → завершение.",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "BPMN описывает исключительно положительный сценарий и упускает ветвления.",
+   "protected": false
+  },
+  {
+   "fid": "F-06",
+   "scope": "set",
+   "requirement_ids": [
+    "R-03"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "FIN-ORDER",
+   "severity": "major",
+   "title": "Не описано: FIN-ORDER — Событие проведения покупки приходит раньше события отмены или с задержкой в неск",
+   "description": "Не описана обработка событий процессинга, пришедших не по порядку или с задержкой. Сценарий: Событие проведения покупки приходит раньше события отмены или с задержкой в несколько дней. Поведение системы не регламентировано.",
+   "quotes": [
+    "Проведение покупки → пересчёт расходов → проверка порога → при достижении отправка push → завершение."
+   ],
+   "lines": [
+    34
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "Не регламентирована обработка событий процессинга, поступивших не по порядку.",
+   "protected": false
+  },
+  {
+   "fid": "F-07",
+   "scope": "set",
+   "requirement_ids": [
+    "R-04",
+    "R-07",
+    "R-12"
+   ],
+   "criterion": "TRACEABLE",
+   "rule": "DOC-TRACE",
+   "severity": "major",
+   "title": "Функциональные требования без критериев приёмки",
+   "description": "Для требований Ф-1, Ф-4 нет ни одного критерия приёмки: их выполнение нечем подтвердить.",
+   "quotes": [
+    "* **Ф-1.** Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно. По умолчанию уведомление выключено.",
+    "* **Ф-4.** При изменении порога накопленная сумма сохраняется. Если она ниже нового порога, следующее достижение вызывает push независимо от истории п"
+   ],
+   "lines": [
+    37,
+    40
+   ],
+   "impact": "",
+   "recommendation": "Добавить критерии приёмки (условия, действие, ожидаемый результат) для каждого требования.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "Отсутствуют критерии приёмки для требований Ф-1 и Ф-4.",
+   "protected": false
+  },
+  {
+   "fid": "F-08",
+   "scope": "set",
+   "requirement_ids": [
+    "R-04",
+    "R-06",
+    "R-07"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "FIN-STATE",
+   "severity": "major",
+   "title": "Не описано: FIN-STATE — Клиент включает уведомление в середине месяца, когда его расходы уже составляют ",
+   "description": "Не описано поведение системы при включении опции или снижении/повышении порога в середине месяца, когда накопленные расходы уже превышают новый порог. Сценарий: Клиент включает уведомление в середине месяца, когда его расходы уже составляют 100 000 ₸ при пороге 50 000 ₸. Не описано, отправляется ли push мгновенно или при следующей покупке.",
+   "quotes": [
+    "По умолчанию уведомление выключено.",
+    "При изменении порога накопленная сумма сохраняется."
+   ],
+   "lines": [
+    37,
+    40
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": false
+  },
+  {
+   "fid": "F-09",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-05"
+   ],
+   "criterion": "COMPLETE",
+   "rule": "FIN-REVERSAL",
+   "severity": "major",
+   "title": "Неполное описание логики возвратов прошлых периодов",
+   "description": "Указано, что возврат уменьшает расходы месяца исходной покупки, но не написано, как обработать ситуацию, если возврат за покупку прошлого месяца приходит в текущем месяце и изменяет исторический итог закрытого периода.",
+   "quotes": [
+    "Возврат уменьшает расходы месяца исходной покупки."
+   ],
+   "lines": [
+    38
+   ],
+   "impact": "Ошибки расчетов и неоднозначность поведения системы при пересчете расходов за закрытые периоды.",
+   "recommendation": "Описать регламент обработки возвратов за прошедшие календарные периоды.",
+   "suggested_rewrite": "Возврат уменьшает расходы месяца исходной покупки. Если возврат проведен за покупку прошлого месяца, счетчик прошедшего месяца уменьшается без отзыва ранее отправленных push-уведомлений.",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": false
+  },
+  {
+   "fid": "F-10",
+   "scope": "set",
+   "requirement_ids": [
+    "R-05"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "FIN-CURRENCY",
+   "severity": "major",
+   "title": "Не описано: FIN-CURRENCY — Клиент совершает покупку в валюте, отличной от KZT. Не указано, по какому курсу ",
+   "description": "Не описаны правила конвертации и выбора курса для покупок в иностранной валюте. Сценарий: Клиент совершает покупку в валюте, отличной от KZT. Не указано, по какому курсу и в какой момент сумма пересчитывается для учета в месячном бюджете.",
+   "quotes": [
+    "В расходы входят проведённые покупки."
+   ],
+   "lines": [
+    38
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "Не указаны правила конвертации валютных операций для включения в счетчик расходов.",
+   "protected": false
+  },
+  {
+   "fid": "F-11",
+   "scope": "set",
+   "requirement_ids": [
+    "R-05"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "FIN-CLASSIFY",
+   "severity": "major",
+   "title": "Не описано: FIN-CLASSIFY — Клиент совершает платеж или с него списывается комиссия. Из текста требования Ф-",
+   "description": "Перечень типов операций неполный: не описан учет комиссий, квази-кэш операций и платежей в мобильном банке. Сценарий: Клиент совершает платеж или с него списывается комиссия. Из текста требования Ф-2 неясно, входят ли данные операции в расходы.",
+   "quotes": [
+    "В расходы входят проведённые покупки. Возврат уменьшает расходы месяца исходной покупки. Переводы и снятие наличных исключаются."
+   ],
+   "lines": [
+    38
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "Не уточнен учет комиссий, платежей и квази-кэш операций в общей сумме расходов.",
+   "protected": false
+  },
+  {
+   "fid": "F-12",
+   "scope": "set",
+   "requirement_ids": [
+    "R-05",
+    "R-06"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "FIN-REVERSAL",
+   "severity": "major",
+   "title": "Не описано: FIN-REVERSAL — Сумма расходов превысила порог, push отправлен. Затем поступил возврат, и расход",
+   "description": "Не описано влияние частичных возвратов и повторного превышения порога после возврата на лимит уведомлений. Сценарий: Сумма расходов превысила порог, push отправлен. Затем поступил возврат, и расходы стали ниже порога. Новая покупка снова превышает порог в том же месяце. Не указано, отправляется ли push повторно.",
+   "quotes": [
+    "Возврат уменьшает расходы месяца исходной покупки.",
+    "На карту приходится максимум один такой push за календарный месяц."
+   ],
+   "lines": [
+    38,
+    39
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": false
+  },
+  {
+   "fid": "F-13",
+   "scope": "set",
+   "requirement_ids": [
+    "R-05",
+    "R-10"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "DOC-DATA",
+   "severity": "major",
+   "title": "Не описано: DOC-DATA — Модель данных хранит операции, но не содержит поля `parent_operation_id` или ссы",
+   "description": "В модели данных отсутствуют атрибуты для связи возврата с исходной операцией. Сценарий: Модель данных хранит операции, но не содержит поля `parent_operation_id` или ссылки на исходный месяц для реализации правила Ф-2 по возвратам.",
+   "quotes": [
+    "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге.",
+    "Возврат уменьшает расходы месяца исходной покупки."
+   ],
+   "lines": [
+    38,
+    49
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "В модель данных не включено поле связи возврата с исходной операцией.",
+   "protected": false
+  },
+  {
+   "fid": "F-14",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-09"
+   ],
+   "criterion": "VERIFIABLE",
+   "rule": "NFR-MEASURABLE",
+   "severity": "major",
+   "title": "Неизмеримое требование к времени отправки push-уведомлений",
+   "description": "Срок отправки «в течение минуты» не содержит целевого перцентиля и условий нагрузки, при которых этот показатель должен соблюдаться.",
+   "quotes": [
+    "Сервис передаёт push на отправку в течение минуты после получения события."
+   ],
+   "lines": [
+    46
+   ],
+   "impact": "Невозможно однозначно составить автотест или оценить соблюдение SLA под нагрузкой.",
+   "recommendation": "Указать перцентиль и допустимый уровень нагрузки для времени отправки.",
+   "suggested_rewrite": "Сервис передаёт push на отправку в течение [уточнить: срок] секунд для [уточнить: доля]% событий при нагрузке до [уточнить: RPS] RPS.",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": true
+  },
+  {
+   "fid": "F-15",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-05",
+    "R-10"
+   ],
+   "criterion": "UNAMBIGUOUS",
+   "rule": "FIN-UNITS",
+   "severity": "major",
+   "title": "Разные единицы измерения денежных сумм в модели данных",
+   "description": "В модели данных сумма покупки хранится в тиынах, а порог — в тенге, при этом правила приведения или сравнения единиц в документе не зафиксированы.",
+   "quotes": [
+    "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге."
+   ],
+   "lines": [
+    49
+   ],
+   "impact": "Риск ошибок при сравнении накопленной суммы и порога в коде системы (например, пропуск деления/умножения на 100).",
+   "recommendation": "Привести все денежные величины к единой единице (например, к тиынам) или явно написать правило пересчета.",
+   "suggested_rewrite": "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в [уточнить: тиынах или тенге].",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": true
+  },
+  {
+   "fid": "F-16",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-11"
+   ],
+   "criterion": "COMPLETE",
+   "rule": "FIN-IDEMPOTENCY",
+   "severity": "major",
+   "title": "Не определен ключ идемпотентности при повторной доставке события",
+   "description": "Требование декларирует сохранение итога при повторной доставке события процессинга, но не указывает ключ, по которому система определяет дубликат.",
+   "quotes": [
+    "Повторная доставка одного события процессинга сохраняет исходный итог."
+   ],
+   "lines": [
+    52
+   ],
+   "impact": "Риск повторного учёта транзакций и ошибочной отправки push-уведомлений при сбоях сети или повторах сообщений.",
+   "recommendation": "Указать уникальное поле транзакции (например, transaction_id), выступающее ключом идемпотентности.",
+   "suggested_rewrite": "Повторная доставка события процессинга с совпадающим [уточнить: ключ идемпотентности] не меняет накопленную сумму и сохраняет исходный итог.",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": false
+  },
+  {
+   "fid": "F-17",
+   "scope": "set",
+   "requirement_ids": [
+    "R-01"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "DOC-ROLLBACK",
+   "severity": "major",
+   "title": "Не описано: DOC-ROLLBACK — В случае сбоя карточного процессинга или сервиса уведомлений в документе не регл",
+   "description": "Не описаны порядок отката доработки и механизмы скрытия функционала (feature toggle) при аварии. Сценарий: В случае сбоя карточного процессинга или сервиса уведомлений в документе не регламентированы действия по отключению функционала.",
+   "quotes": [
+    "При невозможности отката — варианты скрытия функционала"
+   ],
+   "lines": [
+    76
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "В документе не регламентирован порядок отката и скрытия функций при аварии.",
+   "protected": false
+  },
+  {
+   "fid": "F-18",
+   "scope": "set",
+   "requirement_ids": [
+    "R-11",
+    "R-15"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "API-SEMANTICS",
+   "severity": "major",
+   "title": "Нарушено правило API-SEMANTICS — Метод `/alerts/saveLimit` предназначен для модификации данных (сохранение порога",
+   "description": "Метод сохранения настройки использует HTTP-метод GET и содержит противоречивые описания (чтение vs сохранение). Сценарий: Метод `/alerts/saveLimit` предназначен для модификации данных (сохранение порога), но объявлен как GET, а в Description смешаны чтение и сохранение.",
+   "quotes": [
+    "Description | Сохранение порога. Функциональные требования: чтение порога",
+    "REST type | GET",
+    "Dev: `/alerts/saveLimit`"
+   ],
+   "lines": [
+    103,
+    104,
+    108
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "Для метода сохранения/модификации данных используется HTTP GET вместо POST/PUT.",
+   "protected": false
+  },
+  {
+   "fid": "F-19",
+   "scope": "set",
+   "requirement_ids": [
+    "R-08",
+    "R-11"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "NFR-SECURITY",
+   "severity": "major",
+   "title": "Не описано: NFR-SECURITY — Параметры управления лимитом передаются через GET query-параметры в URL, что соз",
+   "description": "Не описаны требования по защите персональных данных, а API передает параметры изменения настроек в открытом URL (Query-параметры). Сценарий: Параметры управления лимитом передаются через GET query-параметры в URL, что создаёт риск логирования чувствительных данных.",
+   "quotes": [
+    "curl -G \"$BASE/alerts/saveLimit\" -H \"Authorization: Bearer $TOKEN\" --data 'cardId=demo-42&amount=50000&enabled=1'"
+   ],
+   "lines": [
+    109
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "Использование GET-запроса с query-параметрами для изменения состояния создаёт риски утечки данных в логах.",
+   "protected": false
+  },
+  {
+   "fid": "F-20",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-15",
+    "R-18"
+   ],
+   "criterion": "UNAMBIGUOUS",
+   "rule": "API-STATUS",
+   "severity": "major",
+   "title": "Возврат ошибки бизнес-логики с кодом HTTP 200 OK",
+   "description": "При отклонении суммы метод возвращает результат ERROR в теле ответа со статусом HTTP 200 OK вместо соответствующего кода ошибки HTTP 400 Bad Request.",
+   "quotes": [
+    "5. При отклонении суммы вернуть прежнее состояние и результат ERROR.",
+    "{\"result\":\"ERROR\",\"message\":\"Проверьте сумму\"}"
+   ],
+   "lines": [
+    121,
+    171
+   ],
+   "impact": "Клиентское приложение не сможет стандартно обрабатывать сетевые и бизнес-ошибки REST API.",
+   "recommendation": "Изменить HTTP-код ответа при ошибке валидации на 400 Bad Request.",
+   "suggested_rewrite": "5. При отклонении суммы вернуть прежнее состояние и код ответа HTTP 400 Bad Request с описанием ошибки.",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": false
+  },
+  {
+   "fid": "F-21",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-11",
+    "R-15",
+    "R-17"
+   ],
+   "criterion": "CORRECT",
+   "rule": "API-CONTRACT",
+   "severity": "major",
+   "title": "Несоответствие типов полей amount и enabled в запросе и ответе",
+   "description": "В Query-параметрах запроса поля amount и enabled объявлены с типом integer, тогда как в структуре ответа эти же поля указаны как string.",
+   "quotes": [
+    "| `amount` | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | `limit_kzt` |",
+    "| `amount` | string | При успехе | Порог в тенге | `limit_kzt` |"
+   ],
+   "lines": [
+    143,
+    156
+   ],
+   "impact": "Разное представление типов данных в спецификации приводит к несогласованной реализации клиентом и сервером и ошибкам парсинга.",
+   "recommendation": "Согласовать контракт API и указать одинаковые типы данных для полей в запросе и ответе.",
+   "suggested_rewrite": "Указать для полей amount и enabled тип [уточнить: integer или string] как в параметрах запроса, так и в теле ответа.",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": false
+  },
+  {
+   "fid": "F-22",
+   "scope": "set",
+   "requirement_ids": [
+    "R-17"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "API-HEADERS",
+   "severity": "major",
+   "title": "Нарушено правило API-HEADERS — Спецификация указывает `Content-Type: application/json` при `Тело не используетс",
+   "description": "Заголовок Content-Type: application/json указан для GET-запроса, у которого отсутствует тело. Сценарий: Спецификация указывает `Content-Type: application/json` при `Тело не используется` и методе GET.",
+   "quotes": [
+    "Content-Type: application/json .",
+    "Тело не используется."
+   ],
+   "lines": [
+    147,
+    148
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "Указан Content-Type: application/json при отметке «Тело не используется» в GET-запросе.",
+   "protected": false
+  },
+  {
+   "fid": "F-23",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-01",
+    "R-02",
+    "R-03",
+    "R-08"
+   ],
+   "criterion": "CONFORMING",
+   "rule": "",
+   "severity": "minor",
+   "title": "Отсутствие идентификаторов у требований",
+   "description": "Некоторые требования (цели, UI, BPMN, Sequence Diagram) не содержат уникальных префиксов/идентификаторов (RID), что затрудняет трассировку.",
+   "quotes": [
+    "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.",
+    "Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При ошибке ввода сообщение появляется под полем."
+   ],
+   "lines": [
+    23,
+    29
+   ],
+   "impact": "Затруднена матрица трассировки (Traceability Matrix) между требованиями, тест-кейсами и баг-репортами.",
+   "recommendation": "Присвоить уникальные идентификаторы всем структурным требованиям спецификации.",
+   "suggested_rewrite": "Добавить идентификаторы вида GOAL-1, UI-1, PROC-1, INT-1.",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": true
+  },
+  {
+   "fid": "F-24",
+   "scope": "set",
+   "requirement_ids": [
+    "R-02",
+    "R-10"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "DOC-HYGIENE",
+   "severity": "minor",
+   "title": "Нарушено правило DOC-HYGIENE — Раздел ревью и блок согласующих оставлены в виде шаблонов без проставления итого",
+   "description": "В документе не заполнены метаданные (версия, дата, согласующие), чек-лист ревью содержит незаполненные варианты «Да / Нет». Сценарий: Раздел ревью и блок согласующих оставлены в виде шаблонов без проставления итоговых значений.",
+   "quotes": [
+    "Документ (версия/дата) в источнике не заполнен. Пункты чек-листа приведены как в шаблоне, отметки не проставлены.",
+    "Да / Нет"
+   ],
+   "lines": [
+    68,
+    72
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "основное замечание в группе дублей",
+   "protected": true
+  },
+  {
+   "fid": "F-25",
+   "scope": "set",
+   "requirement_ids": [
+    "R-11"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "API-ENV",
+   "severity": "minor",
+   "title": "Не описано: API-ENV — Разработчик и QA не имеют информации о Prod URL и Swagger-документации для API.",
+   "description": "В таблице общих параметров API отсутствуют адреса промышленного окружения и ссылка на Swagger. Сценарий: Разработчик и QA не имеют информации о Prod URL и Swagger-документации для API.",
+   "quotes": [
+    "Prod: —",
+    "Swagger | —"
+   ],
+   "lines": [
+    108,
+    110
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "confirmed",
+   "critic_note": "Отсутствуют Prod URL и ссылка на Swagger-документацию в спецификации API.",
+   "protected": false
+  }
+ ],
+ "rejected_findings": [
+  {
+   "fid": "X-01",
+   "scope": "set",
+   "requirement_ids": [
+    "R-15",
+    "R-16",
+    "R-18"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "FIN-CONFLICT",
+   "severity": "critical",
+   "title": "Сценарий даёт разный результат по разным пунктам: Передача некорректной суммы порога (например, 500 ₸) в REST API метод /alerts/saveLimit",
+   "description": "Сценарий: Передача некорректной суммы порога (например, 500 ₸) в REST API метод /alerts/saveLimit. Итог по документу: Разработчик не может определить корректный HTTP-код ответа сервера при валидации параметров.. По пунктам: R-15: При отклонении суммы вернуть прежнее состояние и результат ERROR.; R-16: Сумма должна быть целым числом тенге от 1 000 до 1 000 000.; R-18: Раздел Статусы декларирует HTTP 400 при неверных параметрах, но в примере кода возвращается HTTP 200 с {\"result\":\"ERROR\"}..",
+   "quotes": [
+    "1. Проверить пользовательскую сессию. 2. Проверить принадлежность карты клиенту. 3. Проверить сумму и переключатель. 4. Заменить настройку и вернуть результат сохранения. 5. При отклонении суммы вернуть прежнее состояние",
+    "1. Целое число тенге, обе границы включены. 2. Повторное сохранение заменяет действующую настройку. 3. Изменение порога сохраняет накопленные расходы.",
+    "Для чужой карты возвращается 404, как и для отсутствующей карты."
+   ],
+   "lines": [
+    124,
+    125,
+    126,
+    189
+   ],
+   "impact": "Разработчик и тестировщик по-разному реализуют и проверят этот случай.",
+   "recommendation": "Описать результат для этого сценария одним правилом и добавить критерий приёмки.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": false,
+   "verification_note": "«1. Проверить пользовательскую сессию. 2. Проверить принадлеж»: цитата не найдена в документе (лучшее совпадение 74%); одна цитата уточнена по точному тексту документа",
+   "critic_verdict": "unchecked",
+   "critic_note": "отклонено верификатором: «1. Проверить пользовательскую сессию. 2. Проверить принадлеж»: цитата не найдена в документе (лучшее совпадение 74%); одна цитата уточнена по точному тексту документа",
+   "protected": false
+  },
+  {
+   "fid": "X-02",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-13"
+   ],
+   "criterion": "CORRECT",
+   "rule": "FIN-CUTOFF",
+   "severity": "critical",
+   "title": "Противоречие между критерием приёмки R-13 и функциональным требованием Ф-2",
+   "description": "По требованию Ф-2 месяц определяется по дате совершения покупки (31 января). Однако в критерии R-13 операция отнесена к февралю на основании даты проведения (1 февраля).",
+   "quotes": [
+    "| Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸ |",
+    "Месяц определяется по дате совершения покупки в Алматы."
+   ],
+   "lines": [
+    38,
+    64
+   ],
+   "impact": "Противоречие в логике учета операций приведет к ошибкам в расчете лимита и разному поведению системы в разработке и тестах.",
+   "recommendation": "Привести критерий приёмки R-13 в полное соответствие с правилом Ф-2.",
+   "suggested_rewrite": "| Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Январский счётчик вырос на 4 000 ₸ |",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Противоречие между Ф-2 и критерием приемки по дате проведения». Дубликат P-01 (противоречие Ф-2 и критерия R-13 по дате совершения/проведения).",
+   "protected": false
+  },
+  {
+   "fid": "X-03",
+   "scope": "requirement",
+   "requirement_ids": [
+    "R-18"
+   ],
+   "criterion": "CORRECT",
+   "rule": "API-STATUS",
+   "severity": "major",
+   "title": "Противоречие HTTP-кода 403 в заголовке раздела и 404 в требовании",
+   "description": "Раздел спецификации озаглавлен как '403. Unsuccessful — Forbidden', но само требование указывает возвращать код 404 для чужой карты.",
+   "quotes": [
+    "#### 403. Unsuccessful — Forbidden",
+    "Для чужой карты возвращается 404, как и для отсутствующей карты."
+   ],
+   "lines": [
+    188,
+    189
+   ],
+   "impact": "Разработчики могут реализовать ответ с кодом 403 вместо 404 (или наоборот), что создаст расхождения при автотестировании.",
+   "recommendation": "Изменить заголовок подраздела на 404 или разнести описание ошибок 403 и 404 по соответствующим подразделам.",
+   "suggested_rewrite": "#### 404. Unsuccessful — Not Found\nДля чужой карты возвращается 404, как и для отсутствующей карты.",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Возврат ошибки бизнес-логики с кодом HTTP 200 OK». Дубликат замечания P-30 о противоречии заголовка 403 и кода 404 в тексте.",
+   "protected": false
+  },
+  {
+   "fid": "X-04",
+   "scope": "set",
+   "requirement_ids": [
+    "R-13",
+    "R-05"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "DOC-TRACE",
+   "severity": "critical",
+   "title": "Критерий приёмки (Критерий приёмки 2) противоречит требованиям",
+   "description": "По требованиям получается: Январский счётчик вырос на 4 000 ₸. В критерии ожидается: Февральский счётчик вырос на 4 000 ₸. Согласно Ф-2 месяц определяется по дате совершения (31 января — январь), а не по дате проведения (1 февраля), поэтому должен увеличиться январский счётчик, а не февральский.",
+   "quotes": [
+    "Месяц определяется по дате совершения покупки в Алматы.",
+    "| Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸ |"
+   ],
+   "lines": [
+    38,
+    64
+   ],
+   "impact": "Разработчик реализует правило из требования, а тестировщик проверит по критерию: тест упадёт или будет принят неверный результат.",
+   "recommendation": "Решить, какое правило верное, и привести требование и критерий к одному результату.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Противоречие между Ф-2 и критерием приемки по дате проведения». Дубликат P-01 (противоречие между датой совершения в Ф-2 и датой проведения в R-13).",
+   "protected": true
+  },
+  {
+   "fid": "X-05",
+   "scope": "set",
+   "requirement_ids": [
+    "R-05",
+    "R-10"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "FIN-ROUNDING",
+   "severity": "major",
+   "title": "Не описано: FIN-ROUNDING — Не указано, как тиыны суммируются и сопоставляются с целым порогом в тенге при п",
+   "description": "В документе не описано правило точности и округления при пересчете сумм из тиынов в тенге для сравнения с порогом. Сценарий: Не указано, как тиыны суммируются и сопоставляются с целым порогом в тенге при проверке условия превышения.",
+   "quotes": [
+    "сумму покупки в тиынах, признак отправки и порог в тенге."
+   ],
+   "lines": [
+    49
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Разные единицы измерения денежных сумм в модели данных». Дубликат P-09 (расхождение тиынов в операциях и тенге в пороге).",
+   "protected": false
+  },
+  {
+   "fid": "X-06",
+   "scope": "set",
+   "requirement_ids": [
+    "R-05",
+    "R-13"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "FIN-CUTOFF",
+   "severity": "critical",
+   "title": "Нарушено правило FIN-CUTOFF — Покупка совершена 31 января, но проведена 1 февраля. Требование Ф-2 относит ее к",
+   "description": "Требование Ф-2 относит покупку к месяцу по дате совершения, а критерий приемки 2 относит ее к месяцу по дате проведения (posting). Сценарий: Покупка совершена 31 января, но проведена 1 февраля. Требование Ф-2 относит ее к январю, а критерий приёмки — к февралю.",
+   "quotes": [
+    "Месяц определяется по дате совершения покупки в Алматы.",
+    "Покупка 31 января в 23:58 на 4 000 ₸",
+    "Провести 1 февраля в 00:03 по Алматы",
+    "Февральский счётчик вырос на 4 000 ₸"
+   ],
+   "lines": [
+    38,
+    64
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Противоречие между Ф-2 и критерием приемки по дате проведения». Дубликат P-01 (противоречие cutoff date между Ф-2 и критерием 2).",
+   "protected": false
+  },
+  {
+   "fid": "X-07",
+   "scope": "set",
+   "requirement_ids": [
+    "R-05"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "FIN-PERIOD-CLOSE",
+   "severity": "major",
+   "title": "Не описано: FIN-PERIOD-CLOSE — В текущем месяце поступает возврат за покупку, совершенную в прошлом месяце. Не ",
+   "description": "Не описана обработка возвратов и запоздавших операций за уже закрытые прошлые периоды. Сценарий: В текущем месяце поступает возврат за покупку, совершенную в прошлом месяце. Не определено, пересчитывается ли закрытый бюджет прошлого месяца и меняется ли статус отправки уведомления.",
+   "quotes": [
+    "Возврат уменьшает расходы месяца исходной покупки."
+   ],
+   "lines": [
+    38
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Неполное описание логики возвратов прошлых периодов». Дубликат P-06 (обработка возвратов прошлых периодов).",
+   "protected": false
+  },
+  {
+   "fid": "X-08",
+   "scope": "set",
+   "requirement_ids": [
+    "R-11"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "FIN-IDEMPOTENCY",
+   "severity": "major",
+   "title": "Не описано: FIN-IDEMPOTENCY — Приходит повторное событие процессинга. Документ не указывает, по какому полю (н",
+   "description": "Указано требование к идемпотентности, но не описан конкретный ключ уникальности для распознавания дублей. Сценарий: Приходит повторное событие процессинга. Документ не указывает, по какому полю (например, transaction ID) определяется дублирование.",
+   "quotes": [
+    "Повторная доставка одного события процессинга сохраняет исходный итог."
+   ],
+   "lines": [
+    52
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Не определен ключ идемпотентности при повторной доставке события». Дубликат P-10 (отсутствие ключа идемпотентности).",
+   "protected": false
+  },
+  {
+   "fid": "X-09",
+   "scope": "set",
+   "requirement_ids": [
+    "R-06",
+    "R-07"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "FIN-CONFLICT",
+   "severity": "critical",
+   "title": "Нарушено правило FIN-CONFLICT — В текущем месяце push уже отправлялся. Клиент меняет порог, расходы снова ниже п",
+   "description": "Требование Ф-3 ограничивает отправку 1 push на карту в месяц, а Ф-4 допускает повторный push при изменении порога 'независимо от истории'. Сценарий: В текущем месяце push уже отправлялся. Клиент меняет порог, расходы снова ниже порога, затем совершается покупка. Ф-3 запрещает второй push за месяц, а Ф-4 требует его отправить.",
+   "quotes": [
+    "На карту приходится максимум один такой push за календарный месяц.",
+    "следующее достижение вызывает push независимо от истории предыдущей настройки."
+   ],
+   "lines": [
+    39,
+    40
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Конфликт правил лимита push в месяц и изменения настройки». Дубликат P-02 (конфликт Ф-3 и Ф-4 при изменении порога).",
+   "protected": false
+  },
+  {
+   "fid": "X-10",
+   "scope": "set",
+   "requirement_ids": [
+    "R-09"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "NFR-MEASURABLE",
+   "severity": "major",
+   "title": "Не описано: NFR-MEASURABLE — Не указано, в каком проценте случаев (например, 99% перцентиль) выдерживается ли",
+   "description": "Нефункциональное требование не содержит перцентиля, условий нагрузки и действия при недоступности смежных систем. Сценарий: Не указано, в каком проценте случаев (например, 99% перцентиль) выдерживается лимит в 1 минуту и что происходит при недоступности Push-сервиса.",
+   "quotes": [
+    "Сервис передаёт push на отправку в течение минуты после получения события."
+   ],
+   "lines": [
+    46
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Неизмеримое требование к времени отправки push-уведомлений». Дубликат P-08 (отсутствие перцентиля в НФТ времени push).",
+   "protected": false
+  },
+  {
+   "fid": "X-11",
+   "scope": "set",
+   "requirement_ids": [
+    "R-18"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "API-STATUS",
+   "severity": "major",
+   "title": "Нарушено правило API-STATUS — При ошибке бизнес-логики метод возвращает HTTP status 200 OK с JSON `{\"result\":\"",
+   "description": "Коды ответов противоречат спецификации: при 200 OK возвращается ERROR в теле, заголовок 200 сопоставлен с Created, а заголовок 403 описывает код 404. Сценарий: При ошибке бизнес-логики метод возвращает HTTP status 200 OK с JSON `{\"result\":\"ERROR\"}`. В разделе статусов под заголовком 403 описан ответ 404.",
+   "quotes": [
+    "200. Successful — Created",
+    "{\"result\":\"ERROR\",\"message\":\"Проверьте сумму\"}",
+    "403. Unsuccessful — Forbidden",
+    "Для чужой карты возвращается 404, как и для отсутствующей карты."
+   ],
+   "lines": [
+    165,
+    171,
+    188,
+    189
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Возврат ошибки бизнес-логики с кодом HTTP 200 OK». Дубликат P-12 в части ответа 200 OK при ошибках и P-14 в части путаницы 403/404.",
+   "protected": false
+  },
+  {
+   "fid": "X-12",
+   "scope": "set",
+   "requirement_ids": [
+    "R-11",
+    "R-15",
+    "R-17"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "API-CONTRACT",
+   "severity": "major",
+   "title": "Нарушено правило API-CONTRACT — Поле `amount` в запросе заявлено как integer, а в ответе — как string. Документ ",
+   "description": "Типы данных полей запроса и ответа распадаются, а также отсутствует метод для чтения настроек. Сценарий: Поле `amount` в запросе заявлено как integer, а в ответе — как string. Документ А требует чтение и сохранение настроек, но специфицирован только метод сохранения.",
+   "quotes": [
+    "Приложение читает и сохраняет настройки через дочерний документ «Уведомление о расходах по карте — REST API».",
+    "`amount` | integer | 32 bit",
+    "`amount` | string | При успехе"
+   ],
+   "lines": [
+    52,
+    143,
+    156
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Несоответствие типов полей amount и enabled в запросе и ответе». Дубликат P-13 (расхождение типов integer/string между запросом и ответом).",
+   "protected": false
+  },
+  {
+   "fid": "X-13",
+   "scope": "set",
+   "requirement_ids": [
+    "R-04",
+    "R-07",
+    "R-12"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "DOC-TRACE",
+   "severity": "major",
+   "title": "Не описано: DOC-TRACE — Нет критериев приемки для проверки установки порога вне диапазона 1000–1000000 ₸",
+   "description": "Отсутствуют критерии приёмки для требований Ф-1 и Ф-4, а раздел «Тестирование требований» не заполнен. Сценарий: Нет критериев приемки для проверки установки порога вне диапазона 1000–1000000 ₸ и для сценария изменения порога.",
+   "quotes": [
+    "заполняются тестировщиками"
+   ],
+   "lines": [
+    57
+   ],
+   "impact": "",
+   "recommendation": "Дописать правило в требования и добавить критерий приёмки для этого сценария.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Функциональные требования без критериев приёмки». Дубликат P-16 (отсутствие критериев приемки для Ф-1 и Ф-4).",
+   "protected": false
+  },
+  {
+   "fid": "X-14",
+   "scope": "set",
+   "requirement_ids": [
+    "R-06",
+    "R-07"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "FIN-CONFLICT",
+   "severity": "critical",
+   "title": "Требования Ф-3 и Ф-4 дают несовместимый результат",
+   "description": "Ситуация: 5 мая 2024 года при пороге 30 000 ₸ расходы достигают 30 000 ₸ и клиент получает push. 10 мая клиент меняет порог на 50 000 ₸ (накопленные расходы 30 000 ₸ < 50 000 ₸). 15 мая 2024 года расходы достигают 50 000 ₸.. По Ф-3: Push от 15 мая не отправляется, так как в мае уже был отправлен 1 push (превышен лимит «максимум один такой push за календарный месяц»).. По Ф-4: Push от 15 мая отправляется, так как при изменении порога новое достижение вызывает push независимо от истории предыдущей настройки.. Требование R-06 запрещает отправлять более одного push в календарный месяц, а требование R-07 предписывает обязательно отправить push при достижении нового порога независимо от прошлых уведомлений.",
+   "quotes": [
+    "На карту приходится максимум один такой push за календарный месяц.",
+    "Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки."
+   ],
+   "lines": [
+    39,
+    40
+   ],
+   "impact": "Разработчик выберет одно из правил наугад; тестировщик проверит по другому.",
+   "recommendation": "Определить приоритет правил для этой ситуации и записать его явно, добавить критерий приёмки.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Конфликт правил лимита push в месяц и изменения настройки». Дубликат P-02 (противоречие Ф-3 и Ф-4 при превышении порога после изменения).",
+   "protected": false
+  },
+  {
+   "fid": "X-15",
+   "scope": "set",
+   "requirement_ids": [
+    "R-05",
+    "R-13"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "FIN-CONFLICT",
+   "severity": "critical",
+   "title": "Сценарий даёт разный результат по разным пунктам: Покупка совершена в конце месяца, а проведена по процессингу в начале следующего месяца",
+   "description": "Сценарий: Покупка совершена в конце месяца, а проведена по процессингу в начале следующего месяца. Итог по документу: Функциональное требование Ф-2 относит операцию к январю, а Критерий приёмки 2 — к февралю.. По пунктам: R-05: Месяц определяется по дате совершения покупки в Алматы (покупка относиться к январю).; R-13: Покупка 31 января, проведенная 1 февраля, увеличивает февральский счетчик расходов..",
+   "quotes": [
+    "* **Ф-2.** Месяц определяется по дате совершения покупки в Алматы. В расходы входят проведённые покупки. Возврат уменьшает расходы месяца исходной покупки. Переводы и снятие наличных исключаются.",
+    "| Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸ |"
+   ],
+   "lines": [
+    38,
+    64
+   ],
+   "impact": "Разработчик и тестировщик по-разному реализуют и проверят этот случай.",
+   "recommendation": "Описать результат для этого сценария одним правилом и добавить критерий приёмки.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Противоречие между Ф-2 и критерием приемки по дате проведения». Дубликат P-01 (противоречие Ф-2 и R-13 по дате отнесения покупки к месяцу).",
+   "protected": false
+  },
+  {
+   "fid": "X-16",
+   "scope": "set",
+   "requirement_ids": [
+    "R-05",
+    "R-06"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "",
+   "severity": "major",
+   "title": "Сценарий не описан: Повторное превышение порога в том же месяце после проведения возврата товара",
+   "description": "Сценарий: Повторное превышение порога в том же месяце после проведения возврата товара. Итог по документу: Сумма расходов снова пересекает порог снизу вверх, но Ф-3 ограничивает количество push до одного в месяц, не уточняя сброс флага при возврате.. По пунктам: R-05: Возврат уменьшает накопленные расходы месяца исходной покупки (сумма опускается ниже порога).; R-06: На карту приходится максимум один push за календарный месяц, но правило требует отправки при переходе суммы снизу вверх..",
+   "quotes": [
+    "* **Ф-2.** Месяц определяется по дате совершения покупки в Алматы. В расходы входят проведённые покупки. Возврат уменьшает расходы месяца исходной покупки. Переводы и снятие наличных исключаются.",
+    "* **Ф-3.** Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push. На карту приходится максимум один такой push за календарный месяц."
+   ],
+   "lines": [
+    38,
+    39
+   ],
+   "impact": "Поведение системы в этом случае будет выбрано разработчиком наугад.",
+   "recommendation": "Описать результат для этого сценария одним правилом и добавить критерий приёмки.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Не описано: FIN-REVERSAL — Сумма расходов превысила порог, push отправлен. Затем поступил возврат, и расход». Дубликат P-22 (повторное превышение порога в том же месяце после возврата).",
+   "protected": false
+  },
+  {
+   "fid": "X-17",
+   "scope": "set",
+   "requirement_ids": [
+    "R-06",
+    "R-07"
+   ],
+   "criterion": "SET_CONSISTENT",
+   "rule": "FIN-CONFLICT",
+   "severity": "critical",
+   "title": "Сценарий даёт разный результат по разным пунктам: Изменение порога на меньший, когда push в текущем месяце УЖЕ был отправлен по старому поро",
+   "description": "Сценарий: Изменение порога на меньший, когда push в текущем месяце УЖЕ был отправлен по старому порогу. Итог по документу: Правило Ф-3 запрещает отправку второго push в месяце, а правило Ф-4 требует отправки push при достижении нового порога независимо от истории.. По пунктам: R-06: На карту приходится максимум один push за календарный месяц.; R-07: Если накопленная сумма ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки..",
+   "quotes": [
+    "* **Ф-3.** Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push. На карту приходится максимум один такой push за календарный месяц.",
+    "* **Ф-4.** При изменении порога накопленная сумма сохраняется. Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки."
+   ],
+   "lines": [
+    39,
+    40
+   ],
+   "impact": "Разработчик и тестировщик по-разному реализуют и проверят этот случай.",
+   "recommendation": "Описать результат для этого сценария одним правилом и добавить критерий приёмки.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Конфликт правил лимита push в месяц и изменения настройки». Дубликат P-02 (конфликт правил Ф-3 и Ф-4 при снижении порога).",
+   "protected": false
+  },
+  {
+   "fid": "X-18",
+   "scope": "set",
+   "requirement_ids": [
+    "R-04",
+    "R-06",
+    "R-07"
+   ],
+   "criterion": "SET_COMPLETE",
+   "rule": "",
+   "severity": "major",
+   "title": "Сценарий не описан: Включение уведомлений в середине месяца, когда накопленные расходы уже выше задаваемого по",
+   "description": "Сценарий: Включение уведомлений в середине месяца, когда накопленные расходы уже выше задаваемого порога. Итог по документу: Документ не регламентирует, должна ли система отправить push мгновенно при включении или ожидать следующий месяц/сброс.. По пунктам: R-04: По умолчанию уведомление выключено.; R-06: Push отправляется при переходе от суммы НИЖЕ порога к сумме равной или ВЫШЕ.; R-07: Описывает поведение только для случая, когда сумма НИЖЕ нового порога..",
+   "quotes": [
+    "* **Ф-1.** Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно. По умолчанию уведомление выключено.",
+    "* **Ф-3.** Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push. На карту приходится максимум один такой push за календарный месяц.",
+    "* **Ф-4.** При изменении порога накопленная сумма сохраняется. Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки."
+   ],
+   "lines": [
+    37,
+    39,
+    40
+   ],
+   "impact": "Поведение системы в этом случае будет выбрано разработчиком наугад.",
+   "recommendation": "Описать результат для этого сценария одним правилом и добавить критерий приёмки.",
+   "suggested_rewrite": "",
+   "source": "llm",
+   "verified": true,
+   "verification_note": "найдены в документе",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Не описано: FIN-STATE — Клиент включает уведомление в середине месяца, когда его расходы уже составляют ». Дубликат P-25 (не описан сценарий включения опции при уже превышенном расходе).",
+   "protected": false
+  },
+  {
+   "fid": "X-19",
+   "scope": "set",
+   "requirement_ids": [],
+   "criterion": "SET_COMPLETE",
+   "rule": "",
+   "severity": "minor",
+   "title": "[RULE-TBD] Незаполненные разделы и заглушки",
+   "description": "В документе есть пометки о том, что содержание будет добавлено позже.",
+   "quotes": [
+    "заполняются тестировщиками",
+    "Документ (версия/дата) в источнике не заполнен. Пункты чек-листа приведены как в шаблоне, отметки не проставлены."
+   ],
+   "lines": [
+    57,
+    68
+   ],
+   "impact": "",
+   "recommendation": "Заполнить разделы до передачи в разработку.",
+   "suggested_rewrite": "",
+   "source": "rule",
+   "verified": true,
+   "verification_note": "найдено правилом по тексту документа",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Нарушено правило DOC-HYGIENE — Раздел ревью и блок согласующих оставлены в виде шаблонов без проставления итого». Дубликат P-36 (незаполненные шаблоны и блоки ревью/тестирования).",
+   "protected": true
+  },
+  {
+   "fid": "X-20",
+   "scope": "set",
+   "requirement_ids": [],
+   "criterion": "SET_CONSISTENT",
+   "rule": "",
+   "severity": "major",
+   "title": "[RULE-UNITS] Суммы в разных единицах",
+   "description": "Суммы встречаются и в основной единице, и в дробной («тиын…»). Нужно проверить, описан ли пересчёт при сравнении сумм.",
+   "quotes": [
+    "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге.",
+    "Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При ошибке ввода сообщение появляется под полем.",
+    "* **Ф-1.** Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно. По умолчанию уведомление выключено."
+   ],
+   "lines": [
+    49,
+    29,
+    37
+   ],
+   "impact": "",
+   "recommendation": "Указать единицу хранения и сравнения и правило пересчёта.",
+   "suggested_rewrite": "",
+   "source": "rule",
+   "verified": true,
+   "verification_note": "найдено правилом по тексту документа",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Разные единицы измерения денежных сумм в модели данных». Дубликат P-09 (различные единицы измерения сумм — тиыны и тенге).",
+   "protected": true
+  },
+  {
+   "fid": "X-21",
+   "scope": "set",
+   "requirement_ids": [],
+   "criterion": "VERIFIABLE",
+   "rule": "",
+   "severity": "major",
+   "title": "[RULE-NFR] Срок без измеримого критерия",
+   "description": "Срок указан без доли случаев (перцентиля), условий нагрузки или явной точки отсчёта.",
+   "quotes": [
+    "Сервис передаёт push на отправку в течение минуты после получения события."
+   ],
+   "lines": [
+    46
+   ],
+   "impact": "",
+   "recommendation": "Указать точку отсчёта и окончания, перцентиль (например, 95%) и нагрузку.",
+   "suggested_rewrite": "",
+   "source": "rule",
+   "verified": true,
+   "verification_note": "найдено правилом по тексту документа",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Неизмеримое требование к времени отправки push-уведомлений». Дубликат P-08 (неизмеримый срок доставки push без условий нагрузки и перцентилей).",
+   "protected": true
+  },
+  {
+   "fid": "X-22",
+   "scope": "set",
+   "requirement_ids": [],
+   "criterion": "TRACEABLE",
+   "rule": "DOC-TRACE",
+   "severity": "minor",
+   "title": "[RULE-ID] 14 из 18 требований без идентификатора",
+   "description": "У требований R-01 (Цель), R-02 (UI), R-03 (Процесс), R-08 (Sequence Diagram), R-09 (НФТ), R-10 (Данные), R-11 (Интеграция), R-12 (Критерий приёмки 1), R-13 (Критерий приёмки 2), R-14 (Критерий приёмки 3), R-15 (API Логика), R-16 (API Правила), R-17 (API Параметры), R-18 (API Ошибки) нет собственного номера в документе: на них нельзя сослаться в тестах, задачах и при изменениях (IEEE 830, п. 4.3, прослеживаемость).",
+   "quotes": [
+    "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.",
+    "Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При ошибке ввода сообщение появляе",
+    "Проведение покупки → пересчёт расходов → проверка порога → при достижении отправка push → завершение."
+   ],
+   "lines": [
+    23,
+    29,
+    34,
+    43,
+    46,
+    49,
+    52,
+    63,
+    64,
+    65,
+    117,
+    118,
+    119,
+    120,
+    121,
+    124,
+    125,
+    126,
+    142,
+    143,
+    144,
+    189
+   ],
+   "impact": "",
+   "recommendation": "Присвоить каждому требованию уникальный идентификатор (например, НФ-1, Д-1, КП-1).",
+   "suggested_rewrite": "",
+   "source": "rule",
+   "verified": true,
+   "verification_note": "найдено правилом по результатам нарезки",
+   "critic_verdict": "rejected",
+   "critic_note": "дубль замечания «Отсутствие идентификаторов у требований». Дубликат P-07 (отсутствие идентификаторов у большинства требований).",
+   "protected": true
+  }
+ ],
+ "rule_signals": [
+  {
+   "fid": "",
+   "scope": "set",
+   "requirement_ids": [],
+   "criterion": "SET_COMPLETE",
+   "rule": "",
+   "severity": "major",
+   "title": "[RULE-TBD] Незаполненные разделы и заглушки",
+   "description": "В документе есть пометки о том, что содержание будет добавлено позже.",
+   "quotes": [
+    "заполняются тестировщиками",
+    "Документ (версия/дата) в источнике не заполнен. Пункты чек-листа приведены как в шаблоне, отметки не проставлены."
+   ],
+   "lines": [
+    57,
+    68
+   ],
+   "impact": "",
+   "recommendation": "Заполнить разделы до передачи в разработку.",
+   "suggested_rewrite": "",
+   "source": "rule",
+   "verified": true,
+   "verification_note": "найдено правилом по тексту документа",
+   "critic_verdict": "unchecked",
+   "critic_note": "",
+   "protected": true
+  },
+  {
+   "fid": "",
+   "scope": "set",
+   "requirement_ids": [],
+   "criterion": "CONFORMING",
+   "rule": "",
+   "severity": "minor",
+   "title": "[RULE-CHECKLIST] Варианты «Да / Нет» без выбора",
+   "description": "В 14 строках остались варианты ответа шаблона без выбора: чек-лист не заполнен. Всего совпадений: 14.",
+   "quotes": [
+    "| Техническое требование зафиксировано и покрывает бизнес-требование | Да / Нет | Да / Нет | |",
+    "| Функциональная спецификация имеет структурированное описание (по стандарту, шаблону) | Да / Нет | Да / Нет | |",
+    "| Sequence-диаграммы, предусмотрены взаимодействия систем, компонентов и решений | Да / Нет / Не требуется | Да / Нет / Не требуется | |"
+   ],
+   "lines": [
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85
+   ],
+   "impact": "",
+   "recommendation": "Заполнить чек-лист и проставить отметки.",
+   "suggested_rewrite": "",
+   "source": "rule",
+   "verified": true,
+   "verification_note": "найдено правилом по тексту документа",
+   "critic_verdict": "unchecked",
+   "critic_note": "",
+   "protected": true
+  },
+  {
+   "fid": "",
+   "scope": "set",
+   "requirement_ids": [],
+   "criterion": "SET_COMPLETE",
+   "rule": "",
+   "severity": "minor",
+   "title": "[RULE-EMPTY] Пустые поля в таблицах",
+   "description": "Поля шаблона заполнены прочерком или пустые строки таблиц.",
+   "quotes": [
+    "| **Swagger** | — |",
+    "| `result` | string | OK / ERROR | Исход сохранения | — |",
+    "| `message` | string | При ошибке | Описание ошибки | — |",
+    "| | | |"
+   ],
+   "lines": [
+    110,
+    155,
+    158,
+    91
+   ],
+   "impact": "",
+   "recommendation": "Заполнить поля или явно указать «не применяется» с причиной.",
+   "suggested_rewrite": "",
+   "source": "rule",
+   "verified": true,
+   "verification_note": "найдено правилом по тексту документа",
+   "critic_verdict": "unchecked",
+   "critic_note": "",
+   "protected": true
+  },
+  {
+   "fid": "",
+   "scope": "set",
+   "requirement_ids": [],
+   "criterion": "SET_CONSISTENT",
+   "rule": "",
+   "severity": "major",
+   "title": "[RULE-UNITS] Суммы в разных единицах",
+   "description": "Суммы встречаются и в основной единице, и в дробной («тиын…»). Нужно проверить, описан ли пересчёт при сравнении сумм.",
+   "quotes": [
+    "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге.",
+    "Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При ошибке ввода сообщение появляется под полем.",
+    "* **Ф-1.** Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно. По умолчанию уведомление выключено."
+   ],
+   "lines": [
+    49,
+    29,
+    37
+   ],
+   "impact": "",
+   "recommendation": "Указать единицу хранения и сравнения и правило пересчёта.",
+   "suggested_rewrite": "",
+   "source": "rule",
+   "verified": true,
+   "verification_note": "найдено правилом по тексту документа",
+   "critic_verdict": "unchecked",
+   "critic_note": "",
+   "protected": true
+  },
+  {
+   "fid": "",
+   "scope": "set",
+   "requirement_ids": [],
+   "criterion": "VERIFIABLE",
+   "rule": "",
+   "severity": "major",
+   "title": "[RULE-NFR] Срок без измеримого критерия",
+   "description": "Срок указан без доли случаев (перцентиля), условий нагрузки или явной точки отсчёта.",
+   "quotes": [
+    "Сервис передаёт push на отправку в течение минуты после получения события."
+   ],
+   "lines": [
+    46
+   ],
+   "impact": "",
+   "recommendation": "Указать точку отсчёта и окончания, перцентиль (например, 95%) и нагрузку.",
+   "suggested_rewrite": "",
+   "source": "rule",
+   "verified": true,
+   "verification_note": "найдено правилом по тексту документа",
+   "critic_verdict": "unchecked",
+   "critic_note": "",
+   "protected": true
+  },
+  {
+   "fid": "",
+   "scope": "set",
+   "requirement_ids": [],
+   "criterion": "MODIFIABLE",
+   "rule": "",
+   "severity": "minor",
+   "title": "[RULE-VERSION] Не указана версия документа",
+   "description": "Номер версии документа не найден.",
+   "quotes": [
+    "Документ (версия/дата) в источнике не заполнен. Пункты чек-листа приведены как в шаблоне, отметки не проставлены.",
+    "| Поддерживается версионность документа / зафиксирована | Да / Нет | Да / Нет | |"
+   ],
+   "lines": [
+    68,
+    85
+   ],
+   "impact": "",
+   "recommendation": "Указать версию, дату и историю изменений.",
+   "suggested_rewrite": "",
+   "source": "rule",
+   "verified": true,
+   "verification_note": "найдено правилом по тексту документа",
+   "critic_verdict": "unchecked",
+   "critic_note": "",
+   "protected": true
+  },
+  {
+   "fid": "",
+   "scope": "set",
+   "requirement_ids": [],
+   "criterion": "TRACEABLE",
+   "rule": "DOC-TRACE",
+   "severity": "minor",
+   "title": "[RULE-ID] 14 из 18 требований без идентификатора",
+   "description": "У требований R-01 (Цель), R-02 (UI), R-03 (Процесс), R-08 (Sequence Diagram), R-09 (НФТ), R-10 (Данные), R-11 (Интеграция), R-12 (Критерий приёмки 1), R-13 (Критерий приёмки 2), R-14 (Критерий приёмки 3), R-15 (API Логика), R-16 (API Правила), R-17 (API Параметры), R-18 (API Ошибки) нет собственного номера в документе: на них нельзя сослаться в тестах, задачах и при изменениях (IEEE 830, п. 4.3, прослеживаемость).",
+   "quotes": [
+    "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.",
+    "Карты → Расходы → Уведомления. На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить». При ошибке ввода сообщение появляе",
+    "Проведение покупки → пересчёт расходов → проверка порога → при достижении отправка push → завершение."
+   ],
+   "lines": [
+    23,
+    29,
+    34,
+    43,
+    46,
+    49,
+    52,
+    63,
+    64,
+    65,
+    117,
+    118,
+    119,
+    120,
+    121,
+    124,
+    125,
+    126,
+    142,
+    143,
+    144,
+    189
+   ],
+   "impact": "",
+   "recommendation": "Присвоить каждому требованию уникальный идентификатор (например, НФ-1, Д-1, КП-1).",
+   "suggested_rewrite": "",
+   "source": "rule",
+   "verified": true,
+   "verification_note": "найдено правилом по результатам нарезки",
+   "critic_verdict": "unchecked",
+   "critic_note": "",
+   "protected": true
+  }
+ ],
+ "set_summary": "Документ содержит базовую бизнес-идею, однако не готов к передаче в разработку и тестирование из-за существенных системных дефектов. Выявлены критические противоречия между функциональными требованиями, критериями приёмки и спецификацией API (отнесение транзакций к периоду, обработка ошибок HTTP, типы данных). Также в спецификации отсутствуют сценарии обработки крайних состояний (включение опции при превышенном лимите, возвраты прошлых периодов, идемпотентность) и не зафиксированы версионность и ранжирование требований.",
+ "set_scores": [
+  {
+   "criterion": "SET_COMPLETE",
+   "status": "issue",
+   "comment": "В документе отсутствуют правила для мультивалютных операций, возвратов прошлых периодов, расчета тиынов, идемпотентности процессинга и обработки ошибок в UI."
+  },
+  {
+   "criterion": "SET_CONSISTENT",
+   "status": "issue",
+   "comment": "Присутствуют противоречия между ФТР и критериями приёмки по определению даты периода, а также между описанием API, его HTTP-кодами и форматом полей."
+  },
+  {
+   "criterion": "SET_FEASIBLE",
+   "status": "ok",
+   "comment": "Заявленный функционал технически реализуем на стеке мобильного банка и карточного процессинга после устранения противоречий в контрактах."
+  },
+  {
+   "criterion": "SET_COMPREHENSIBLE",
+   "status": "ok",
+   "comment": "Бизнес-цель и общая концепция понятны, структура документа логично разделена на бизнес-часть и REST API."
+  },
+  {
+   "criterion": "SET_VALIDATABLE",
+   "status": "issue",
+   "comment": "Часть функциональных требований (Ф-1, Ф-4) не покрыта критериями приёмки, а требование к скорости отправки push не содержит измеримого перцентиля."
+  },
+  {
+   "criterion": "SET_NO_DUPLICATES",
+   "status": "ok",
+   "comment": "Прямого дублирования требований разными словами в документе не обнаружено."
+  },
+  {
+   "criterion": "SET_NO_DESIGN",
+   "status": "ok",
+   "comment": "Требования сформулированы на уровне бизнес-логики и REST API контракта без необоснованного навязывания конкретной реализации."
+  },
+  {
+   "criterion": "SET_NO_TBD",
+   "status": "issue",
+   "comment": "Документ содержит незаполненные заглушки («заполняются тестировщиками»), пустые значения в таблице согласующих и пропущенные URL/Swagger."
+  },
+  {
+   "criterion": "RANKED",
+   "status": "issue",
+   "comment": "В документе отсутствует приоритезация и ранжирование требований по степени важности или критичности."
+  },
+  {
+   "criterion": "MODIFIABLE",
+   "status": "issue",
+   "comment": "Версия и дата документа не заполнены, у большинства требований отсутствуют уникальные идентификаторы, что затрудняет внесение изменений."
+  },
+  {
+   "criterion": "TRACEABLE",
+   "status": "issue",
+   "comment": "Отсутствует сквозная прослеживаемость: большинство требований не снабжено ID, а критерии приёмки покрывают лишь 3 из 4 функциональных пунктов."
+  }
+ ],
+ "scenarios": [
+  {
+   "scenario": "Проведение покупки точно на сумму порога (с 48 500 ₸ до 50 000 ₸ при пороге 50 000 ₸)",
+   "rules_applied": [
+    "R-06",
+    "R-12"
+   ],
+   "per_rule": [
+    {
+     "rid": "R-06",
+     "result": "Отправка push-уведомления при переходе от суммы ниже порога к сумме равной или выше порога."
+    },
+    {
+     "rid": "R-12",
+     "result": "При покупке на 1 500 ₸ итог составляет 50 000 ₸ и отправляется один push."
+    }
+   ],
+   "outcome": "Система успешно отправляет push-уведомление клиенту при достижении ровной суммы порога.",
+   "status": "ok",
+   "note": "Поведение при точной границе порога описано согласованно."
+  },
+  {
+   "scenario": "Покупка совершена в конце месяца, а проведена по процессингу в начале следующего месяца",
+   "rules_applied": [
+    "R-05",
+    "R-13"
+   ],
+   "per_rule": [
+    {
+     "rid": "R-05",
+     "result": "Месяц определяется по дате совершения покупки в Алматы (покупка относиться к январю)."
+    },
+    {
+     "rid": "R-13",
+     "result": "Покупка 31 января, проведенная 1 февраля, увеличивает февральский счетчик расходов."
+    }
+   ],
+   "outcome": "Функциональное требование Ф-2 относит операцию к январю, а Критерий приёмки 2 — к февралю.",
+   "status": "conflict",
+   "note": "Непротиворечивость нарушена: дата совершения и дата проведения дают разный результат отнесения к периоду."
+  },
+  {
+   "scenario": "Повторное превышение порога в том же месяце после проведения возврата товара",
+   "rules_applied": [
+    "R-05",
+    "R-06"
+   ],
+   "per_rule": [
+    {
+     "rid": "R-05",
+     "result": "Возврат уменьшает накопленные расходы месяца исходной покупки (сумма опускается ниже порога)."
+    },
+    {
+     "rid": "R-06",
+     "result": "На карту приходится максимум один push за календарный месяц, но правило требует отправки при переходе суммы снизу вверх."
+    }
+   ],
+   "outcome": "Сумма расходов снова пересекает порог снизу вверх, но Ф-3 ограничивает количество push до одного в месяц, не уточняя сброс флага при возврате.",
+   "status": "gap",
+   "note": "Пропущено правило сброса признака отправки push при возврате средств."
+  },
+  {
+   "scenario": "Изменение порога на меньший, когда push в текущем месяце УЖЕ был отправлен по старому порогу",
+   "rules_applied": [
+    "R-06",
+    "R-07"
+   ],
+   "per_rule": [
+    {
+     "rid": "R-06",
+     "result": "На карту приходится максимум один push за календарный месяц."
+    },
+    {
+     "rid": "R-07",
+     "result": "Если накопленная сумма ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки."
+    }
+   ],
+   "outcome": "Правило Ф-3 запрещает отправку второго push в месяце, а правило Ф-4 требует отправки push при достижении нового порога независимо от истории.",
+   "status": "conflict",
+   "note": "Прямой конфликт между суточным/месячным лимитом push и правилом смены настройки."
+  },
+  {
+   "scenario": "Включение уведомлений в середине месяца, когда накопленные расходы уже выше задаваемого порога",
+   "rules_applied": [
+    "R-04",
+    "R-06",
+    "R-07"
+   ],
+   "per_rule": [
+    {
+     "rid": "R-04",
+     "result": "По умолчанию уведомление выключено."
+    },
+    {
+     "rid": "R-06",
+     "result": "Push отправляется при переходе от суммы НИЖЕ порога к сумме равной или ВЫШЕ."
+    },
+    {
+     "rid": "R-07",
+     "result": "Описывает поведение только для случая, когда сумма НИЖЕ нового порога."
+    }
+   ],
+   "outcome": "Документ не регламентирует, должна ли система отправить push мгновенно при включении или ожидать следующий месяц/сброс.",
+   "status": "gap",
+   "note": "Не описано состояние включения функции при уже превышенном пороге."
+  },
+  {
+   "scenario": "Совершение клиентом операции денежного перевода (P2P) при расходах близких к порогу",
+   "rules_applied": [
+    "R-05",
+    "R-14"
+   ],
+   "per_rule": [
+    {
+     "rid": "R-05",
+     "result": "Переводы и снятия наличных исключаются из подсчета расходов."
+    },
+    {
+     "rid": "R-14",
+     "result": "Перевод 500 ₸ при расходах 19 900 ₸ и пороге 20 000 ₸ оставляет счетчик на уровне 19 900 ₸."
+    }
+   ],
+   "outcome": "Перевод исключается из расчёта расходов, push-уведомление не отправляется.",
+   "status": "ok",
+   "note": "Логика исключения нерасходных операций описана полно и подтверждена примером."
+  },
+  {
+   "scenario": "Передача некорректной суммы порога (например, 500 ₸) в REST API метод /alerts/saveLimit",
+   "rules_applied": [
+    "R-15",
+    "R-16",
+    "R-18"
+   ],
+   "per_rule": [
+    {
+     "rid": "R-15",
+     "result": "При отклонении суммы вернуть прежнее состояние и результат ERROR."
+    },
+    {
+     "rid": "R-16",
+     "result": "Сумма должна быть целым числом тенге от 1 000 до 1 000 000."
+    },
+    {
+     "rid": "R-18",
+     "result": "Раздел Статусы декларирует HTTP 400 при неверных параметрах, но в примере кода возвращается HTTP 200 с {\"result\":\"ERROR\"}."
+    }
+   ],
+   "outcome": "Разработчик не может определить корректный HTTP-код ответа сервера при валидации параметров.",
+   "status": "conflict",
+   "note": "Противоречие между HTTP 400 Bad Request и HTTP 200 OK с бизнес-ошибкой."
+  }
+ ],
+ "acceptance_checks": [
+  {
+   "criterion_rid": "R-12",
+   "steps": [
+    {
+     "rid": "R-05",
+     "rule_quote": "В расходы входят проведённые покупки.",
+     "application": "Проведённая покупка на 1 500 ₸ добавляется к текущим расходам 48 500 ₸: 48 500 + 1 500 = 50 000 ₸."
+    },
+    {
+     "rid": "R-06",
+     "rule_quote": "Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push.",
+     "application": "Расходы изменились с 48 500 ₸ (ниже порога 50 000 ₸) до 50 000 ₸ (равно порогу), отправляется один push."
+    }
+   ],
+   "derived_result": "Итог 50 000 ₸ и один push",
+   "stated_result": "Итог 50 000 ₸ и один push",
+   "verdict": "match",
+   "explanation": "Расчёт суммы (48 500 + 1 500 = 50 000 ₸) и отправка 1 push при достижении порога полностью соответствуют правилам Ф-2 и Ф-3."
+  },
+  {
+   "criterion_rid": "R-13",
+   "steps": [
+    {
+     "rid": "R-05",
+     "rule_quote": "Месяц определяется по дате совершения покупки в Алматы. В расходы входят проведённые покупки.",
+     "application": "Дата совершения покупки — 31 января, следовательно операция относится к январю. Проведение 1 февраля засчитывает покупку в расходы января."
+    }
+   ],
+   "derived_result": "Январский счётчик вырос на 4 000 ₸",
+   "stated_result": "Февральский счётчик вырос на 4 000 ₸",
+   "verdict": "mismatch",
+   "explanation": "Согласно Ф-2 месяц определяется по дате совершения (31 января — январь), а не по дате проведения (1 февраля), поэтому должен увеличиться январский счётчик, а не февральский."
+  },
+  {
+   "criterion_rid": "R-14",
+   "steps": [
+    {
+     "rid": "R-05",
+     "rule_quote": "Переводы и снятие наличных исключаются.",
+     "application": "Операция перевода на 500 ₸ не включается в расходы, сумма расходов остается равной 19 900 ₸."
+    }
+   ],
+   "derived_result": "Счётчик показывает 19 900 ₸",
+   "stated_result": "Счётчик показывает 19 900 ₸",
+   "verdict": "match",
+   "explanation": "Перевод исключается из расчета расходов в соответствии с Ф-2, сумма расходов не меняется."
+  }
+ ],
+ "uncovered_requirements": [
+  "R-04",
+  "R-07"
+ ],
+ "rule_checks": [
+  {
+   "code": "FIN-UNITS",
+   "status": "ok",
+   "explanation": "Указаны валюта (KZT / ₸) и единицы измерения сумм (тиыны для покупок, тенге для порога).",
+   "scenario": "Ошибок не обнаружено.",
+   "requirement_ids": [
+    "R-04",
+    "R-10"
+   ]
+  },
+  {
+   "code": "FIN-ROUNDING",
+   "status": "missing",
+   "explanation": "В документе не описано правило точности и округления при пересчете сумм из тиынов в тенге для сравнения с порогом.",
+   "scenario": "Не указано, как тиыны суммируются и сопоставляются с целым порогом в тенге при проверке условия превышения.",
+   "requirement_ids": [
+    "R-05",
+    "R-10"
+   ]
+  },
+  {
+   "code": "FIN-CURRENCY",
+   "status": "missing",
+   "explanation": "Не описаны правила конвертации и выбора курса для покупок в иностранной валюте.",
+   "scenario": "Клиент совершает покупку в валюте, отличной от KZT. Не указано, по какому курсу и в какой момент сумма пересчитывается для учета в месячном бюджете.",
+   "requirement_ids": [
+    "R-05"
+   ]
+  },
+  {
+   "code": "FIN-BOUNDS",
+   "status": "ok",
+   "explanation": "Границы порога (1 000 и 1 000 000 ₸) явно указаны как включительные во всех разделах требований и API.",
+   "scenario": "Ошибок не обнаружено.",
+   "requirement_ids": [
+    "R-04",
+    "R-16",
+    "R-17"
+   ]
+  },
+  {
+   "code": "FIN-CUTOFF",
+   "status": "violated",
+   "explanation": "Требование Ф-2 относит покупку к месяцу по дате совершения, а критерий приемки 2 относит ее к месяцу по дате проведения (posting).",
+   "scenario": "Покупка совершена 31 января, но проведена 1 февраля. Требование Ф-2 относит ее к январю, а критерий приёмки — к февралю.",
+   "requirement_ids": [
+    "R-05",
+    "R-13"
+   ]
+  },
+  {
+   "code": "FIN-TZ",
+   "status": "ok",
+   "explanation": "Часовой пояс явно зафиксирован как Алматы в функциональных требованиях и критериях приёмки.",
+   "scenario": "Ошибок не обнаружено.",
+   "requirement_ids": [
+    "R-05",
+    "R-13"
+   ]
+  },
+  {
+   "code": "FIN-PERIOD-CLOSE",
+   "status": "missing",
+   "explanation": "Не описана обработка возвратов и запоздавших операций за уже закрытые прошлые периоды.",
+   "scenario": "В текущем месяце поступает возврат за покупку, совершенную в прошлом месяце. Не определено, пересчитывается ли закрытый бюджет прошлого месяца и меняется ли статус отправки уведомления.",
+   "requirement_ids": [
+    "R-05"
+   ]
+  },
+  {
+   "code": "FIN-CLASSIFY",
+   "status": "missing",
+   "explanation": "Перечень типов операций неполный: не описан учет комиссий, квази-кэш операций и платежей в мобильном банке.",
+   "scenario": "Клиент совершает платеж или с него списывается комиссия. Из текста требования Ф-2 неясно, входят ли данные операции в расходы.",
+   "requirement_ids": [
+    "R-05"
+   ]
+  },
+  {
+   "code": "FIN-REVERSAL",
+   "status": "missing",
+   "explanation": "Не описано влияние частичных возвратов и повторного превышения порога после возврата на лимит уведомлений.",
+   "scenario": "Сумма расходов превысила порог, push отправлен. Затем поступил возврат, и расходы стали ниже порога. Новая покупка снова превышает порог в том же месяце. Не указано, отправляется ли push повторно.",
+   "requirement_ids": [
+    "R-05",
+    "R-06"
+   ]
+  },
+  {
+   "code": "FIN-STATUS",
+   "status": "ok",
+   "explanation": "Явно зафиксировано, что учитываются только проведённые покупки.",
+   "scenario": "Ошибок не обнаружено.",
+   "requirement_ids": [
+    "R-05"
+   ]
+  },
+  {
+   "code": "FIN-IDEMPOTENCY",
+   "status": "missing",
+   "explanation": "Указано требование к идемпотентности, но не описан конкретный ключ уникальности для распознавания дублей.",
+   "scenario": "Приходит повторное событие процессинга. Документ не указывает, по какому полю (например, transaction ID) определяется дублирование.",
+   "requirement_ids": [
+    "R-11"
+   ]
+  },
+  {
+   "code": "FIN-ORDER",
+   "status": "missing",
+   "explanation": "Не описана обработка событий процессинга, пришедших не по порядку или с задержкой.",
+   "scenario": "Событие проведения покупки приходит раньше события отмены или с задержкой в несколько дней. Поведение системы не регламентировано.",
+   "requirement_ids": [
+    "R-03"
+   ]
+  },
+  {
+   "code": "FIN-AUDIT",
+   "status": "ok",
+   "explanation": "Состав хранящихся атрибутов содержит идентификаторы карты, операции, месяц, суммы и признак отправки.",
+   "scenario": "Ошибок не обнаружено.",
+   "requirement_ids": [
+    "R-10"
+   ]
+  },
+  {
+   "code": "FIN-STATE",
+   "status": "missing",
+   "explanation": "Не описано поведение системы при включении опции или снижении/повышении порога в середине месяца, когда накопленные расходы уже превышают новый порог.",
+   "scenario": "Клиент включает уведомление в середине месяца, когда его расходы уже составляют 100 000 ₸ при пороге 50 000 ₸. Не описано, отправляется ли push мгновенно или при следующей покупке.",
+   "requirement_ids": [
+    "R-04",
+    "R-07"
+   ]
+  },
+  {
+   "code": "FIN-TRIGGER",
+   "status": "ok",
+   "explanation": "Условие срабатывания (переход от суммы ниже порога к сумме равной или выше) описано однозначно.",
+   "scenario": "Ошибок не обнаружено.",
+   "requirement_ids": [
+    "R-06"
+   ]
+  },
+  {
+   "code": "FIN-CONFLICT",
+   "status": "violated",
+   "explanation": "Требование Ф-3 ограничивает отправку 1 push на карту в месяц, а Ф-4 допускает повторный push при изменении порога 'независимо от истории'.",
+   "scenario": "В текущем месяце push уже отправлялся. Клиент меняет порог, расходы снова ниже порога, затем совершается покупка. Ф-3 запрещает второй push за месяц, а Ф-4 требует его отправить.",
+   "requirement_ids": [
+    "R-06",
+    "R-07"
+   ]
+  },
+  {
+   "code": "NFR-MEASURABLE",
+   "status": "missing",
+   "explanation": "Нефункциональное требование не содержит перцентиля, условий нагрузки и действия при недоступности смежных систем.",
+   "scenario": "Не указано, в каком проценте случаев (например, 99% перцентиль) выдерживается лимит в 1 минуту и что происходит при недоступности Push-сервиса.",
+   "requirement_ids": [
+    "R-09"
+   ]
+  },
+  {
+   "code": "NFR-SECURITY",
+   "status": "missing",
+   "explanation": "Не описаны требования по защите персональных данных, а API передает параметры изменения настроек в открытом URL (Query-параметры).",
+   "scenario": "Параметры управления лимитом передаются через GET query-параметры в URL, что создаёт риск логирования чувствительных данных.",
+   "requirement_ids": [
+    "R-08",
+    "R-11"
+   ]
+  },
+  {
+   "code": "API-SEMANTICS",
+   "status": "violated",
+   "explanation": "Метод сохранения настройки использует HTTP-метод GET и содержит противоречивые описания (чтение vs сохранение).",
+   "scenario": "Метод `/alerts/saveLimit` предназначен для модификации данных (сохранение порога), но объявлен как GET, а в Description смешаны чтение и сохранение.",
+   "requirement_ids": [
+    "R-11",
+    "R-15"
+   ]
+  },
+  {
+   "code": "API-STATUS",
+   "status": "violated",
+   "explanation": "Коды ответов противоречат спецификации: при 200 OK возвращается ERROR в теле, заголовок 200 сопоставлен с Created, а заголовок 403 описывает код 404.",
+   "scenario": "При ошибке бизнес-логики метод возвращает HTTP status 200 OK с JSON `{\"result\":\"ERROR\"}`. В разделе статусов под заголовком 403 описан ответ 404.",
+   "requirement_ids": [
+    "R-18"
+   ]
+  },
+  {
+   "code": "API-CONTRACT",
+   "status": "violated",
+   "explanation": "Типы данных полей запроса и ответа распадаются, а также отсутствует метод для чтения настроек.",
+   "scenario": "Поле `amount` в запросе заявлено как integer, а в ответе — как string. Документ А требует чтение и сохранение настроек, но специфицирован только метод сохранения.",
+   "requirement_ids": [
+    "R-11",
+    "R-15",
+    "R-17"
+   ]
+  },
+  {
+   "code": "API-HEADERS",
+   "status": "violated",
+   "explanation": "Заголовок Content-Type: application/json указан для GET-запроса, у которого отсутствует тело.",
+   "scenario": "Спецификация указывает `Content-Type: application/json` при `Тело не используется` и методе GET.",
+   "requirement_ids": [
+    "R-17"
+   ]
+  },
+  {
+   "code": "API-ENV",
+   "status": "missing",
+   "explanation": "В таблице общих параметров API отсутствуют адреса промышленного окружения и ссылка на Swagger.",
+   "scenario": "Разработчик и QA не имеют информации о Prod URL и Swagger-документации для API.",
+   "requirement_ids": [
+    "R-11"
+   ]
+  },
+  {
+   "code": "DOC-TRACE",
+   "status": "missing",
+   "explanation": "Отсутствуют критерии приёмки для требований Ф-1 и Ф-4, а раздел «Тестирование требований» не заполнен.",
+   "scenario": "Нет критериев приемки для проверки установки порога вне диапазона 1000–1000000 ₸ и для сценария изменения порога.",
+   "requirement_ids": [
+    "R-04",
+    "R-07",
+    "R-12"
+   ]
+  },
+  {
+   "code": "DOC-DATA",
+   "status": "missing",
+   "explanation": "В модели данных отсутствуют атрибуты для связи возврата с исходной операцией.",
+   "scenario": "Модель данных хранит операции, но не содержит поля `parent_operation_id` или ссылки на исходный месяц для реализации правила Ф-2 по возвратам.",
+   "requirement_ids": [
+    "R-05",
+    "R-10"
+   ]
+  },
+  {
+   "code": "DOC-HYGIENE",
+   "status": "violated",
+   "explanation": "В документе не заполнены метаданные (версия, дата, согласующие), чек-лист ревью содержит незаполненные варианты «Да / Нет».",
+   "scenario": "Раздел ревью и блок согласующих оставлены в виде шаблонов без проставления итоговых значений.",
+   "requirement_ids": [
+    "R-02",
+    "R-10"
+   ]
+  },
+  {
+   "code": "DOC-ROLLBACK",
+   "status": "missing",
+   "explanation": "Не описаны порядок отката доработки и механизмы скрытия функционала (feature toggle) при аварии.",
+   "scenario": "В случае сбоя карточного процессинга или сервиса уведомлений в документе не регламентированы действия по отключению функционала.",
+   "requirement_ids": [
+    "R-01"
+   ]
+  }
+ ],
+ "questions": [
+  {
+   "qid": "Q-01",
+   "priority": "high",
+   "question": "По какому правилу определяется месяц отнесения операции к расходам: по дате совершения покупки в Алматы (п. Ф-2) или по дате проведения/клиринга операции (Критерий приёмки №2)?",
+   "why": "Противоречие между Ф-2 и критерием приёмки №2 приводит к неверному расчёту месячного бюджета и невозможности написать однозначные автотесты.",
+   "options": [
+    "а) По дате совершения покупки клиентом (по Алматы)",
+    "б) По дате фактического проведения (клиринга) операции",
+    "в) другое: уточните"
+   ],
+   "finding_ids": [
+    "F-01"
+   ],
+   "requirement_ids": [
+    "R-05",
+    "R-13"
+   ],
+   "addressee": "Product Owner / Бизнес-аналитик",
+   "answer": ""
+  },
+  {
+   "qid": "Q-02",
+   "priority": "high",
+   "question": "Отправляется ли повторный push в текущем месяце, если клиент изменил порог расходов, когда ранее по прежней настройке push уже отправлялся (п. Ф-3 заявляет «максимум один push в месяц», а п. Ф-4 — «независимо от истории предыдущей настройки»)?",
+   "why": "Прямое противоречие двух бизнес-правил блокирует проектирование логики отправки уведомлений и тест-дизайн.",
+   "options": [
+    "а) Лимит 1 push в месяц строгий: повторный push не отправляется ни при каких условиях",
+    "б) Изменение порога сбрасывает лимит: при новом достижении отправляется ещё один push",
+    "в) другое: уточните"
+   ],
+   "finding_ids": [
+    "F-02"
+   ],
+   "requirement_ids": [
+    "R-06",
+    "R-07"
+   ],
+   "addressee": "Product Owner / Бизнес-аналитик",
+   "answer": ""
+  },
+  {
+   "qid": "Q-03",
+   "priority": "high",
+   "question": "Каково поведение системы, если клиент включает уведомление или изменяет порог в середине месяца, когда его расходы уже равны новому порогу или превышают его (п. Ф-1, Ф-4)?",
+   "why": "Не описан ключевой сценарий включения/изменения настроек «поверх» уже накопленной суммы расходов.",
+   "options": [
+    "а) Push отправляется мгновенно при сохранении настройки",
+    "б) Push отправляется только при совершении следующей покупки в этом месяце",
+    "в) Push не отправляется до следующего месяца",
+    "г) другое: уточните"
+   ],
+   "finding_ids": [
+    "F-08"
+   ],
+   "requirement_ids": [
+    "R-04",
+    "R-06",
+    "R-07"
+   ],
+   "addressee": "Бизнес-аналитик",
+   "answer": ""
+  },
+  {
+   "qid": "Q-04",
+   "priority": "medium",
+   "question": "Как должны отражаться возвраты прошлых периодов (п. Ф-2 говорит «уменьшает расходы месяца исходной покупки»): корректируется ли закрытый прошлый месяц или сумма вычитается из текущего месяца?",
+   "why": "Изменение итогов закрытого периода может потребовать сложных перерасчетов, а в модель данных не добавлены атрибуты связи с исходной операцией.",
+   "options": [
+    "а) Уменьшаются расходы текущего месяца (месяца проведения возврата)",
+    "б) Корректируется прошлый месяц (без повторной отправки push)",
+    "в) другое: уточните"
+   ],
+   "finding_ids": [
+    "F-09",
+    "F-13"
+   ],
+   "requirement_ids": [
+    "R-05",
+    "R-10"
+   ],
+   "addressee": "Системный аналитик / Бизнес-владелец",
+   "answer": ""
+  },
+  {
+   "qid": "Q-05",
+   "priority": "medium",
+   "question": "Какие типы операций и валюты входят в расчёт месячного порога (п. Ф-2): учитываются ли покупки в иностранной валюте (и по какому курсу), комиссии и квази-кэш?",
+   "why": "Неполнота классификации операций приведет к расхождениям в расчете расходов между сервисом и клиентом.",
+   "options": [
+    "а) Только покупки в KZT; комиссии и квази-кэш исключаются",
+    "б) Покупки в любой валюте по курсу на момент проведения + комиссии",
+    "в) другое: уточните"
+   ],
+   "finding_ids": [
+    "F-10",
+    "F-11"
+   ],
+   "requirement_ids": [
+    "R-05"
+   ],
+   "addressee": "Бизнес-владелец / Аналитик",
+   "answer": ""
+  },
+  {
+   "qid": "Q-06",
+   "priority": "medium",
+   "question": "Какой HTTP-метод и способ передачи параметров должен использовать метод `/alerts/saveLimit` (Раздел REST API)?",
+   "why": "Использование GET-метода для изменения данных с передачей параметров в URL нарушает стандарты REST API и создает риски безопасности.",
+   "options": [
+    "а) Метод POST или PUT с передачей JSON-тела в Request Body",
+    "б) Метод POST с URL-encoded параметрами",
+    "в) другое: уточните"
+   ],
+   "finding_ids": [
+    "F-18",
+    "F-19",
+    "F-22"
+   ],
+   "requirement_ids": [
+    "R-11",
+    "R-15",
+    "R-17"
+   ],
+   "addressee": "Архитектор / Информационная безопасность",
+   "answer": ""
+  },
+  {
+   "qid": "Q-07",
+   "priority": "medium",
+   "question": "Каким HTTP-кодом ответа должна сопровождаться ошибка валидации порога при запросе к API (Раздел REST API)?",
+   "why": "Возврат ошибки бизнес-логики со статусом HTTP 200 OK (`{\"result\":\"ERROR\"}`) противоречит спецификации статусов 400 Bad Request.",
+   "options": [
+    "а) HTTP статус 400 Bad Request",
+    "б) HTTP статус 200 OK с полем result: ERROR",
+    "в) другое: уточните"
+   ],
+   "finding_ids": [
+    "F-20"
+   ],
+   "requirement_ids": [
+    "R-15",
+    "R-18"
+   ],
+   "addressee": "Команда разработки / Архитектор",
+   "answer": ""
+  },
+  {
+   "qid": "Q-08",
+   "priority": "medium",
+   "question": "В каких единицах измерения и типах данных должны передаваться и храниться суммы порогов и операций (п. Требования к данным, Параметры запроса)?",
+   "why": "В модели данных сумма операций указана в тиынах, а порог — в тенге; в API параметры запроса integer, а ответа — string.",
+   "options": [
+    "а) Везде целое число в тенге (integer)",
+    "б) Суммы операций в тиынах (integer), порог в тенге (integer)",
+    "в) другое: уточните"
+   ],
+   "finding_ids": [
+    "F-15",
+    "F-21"
+   ],
+   "requirement_ids": [
+    "R-10",
+    "R-17"
+   ],
+   "addressee": "Системный аналитик",
+   "answer": ""
+  },
+  {
+   "qid": "Q-09",
+   "priority": "medium",
+   "question": "Какой атрибут используется в качестве ключа идемпотентности при повторной доставке событий от карточного процессинга (п. Требования к интеграции)?",
+   "why": "Без точного ключа идемпотентности возможна повторная обработка дубликатов транзакций и ошибочный пересчёт суммы.",
+   "options": [
+    "а) Уникальный `operation_id` (идентификатор операции процессинга)",
+    "б) Составной ключ (`card_id` + `amount` + `timestamp`)",
+    "в) другое: уточните"
+   ],
+   "finding_ids": [
+    "F-16"
+   ],
+   "requirement_ids": [
+    "R-11"
+   ],
+   "addressee": "Разработчик / Архитектор",
+   "answer": ""
+  },
+  {
+   "qid": "Q-10",
+   "priority": "low",
+   "question": "Каковы тексты сообщений об ошибках UI и поведение кнопки «Сохранить» при некорректном вводе порога (п. Дизайн процесса UI)?",
+   "why": "Отсутствие текста ошибок и состояний элементов UI делает требование неполным для фронтенд-разработки и тестирования.",
+   "options": [
+    "а) Кнопка «Сохранить» недоступна, под полем выводится текст: «Введите сумму от 1 000 до 1 000 000 ₸»",
+    "б) Ошибка валидации выводится только при нажатии кнопки «Сохранить»",
+    "в) другое: уточните"
+   ],
+   "finding_ids": [
+    "F-04"
+   ],
+   "requirement_ids": [
+    "R-02"
+   ],
+   "addressee": "UX/UI Дизайнер / Бизнес-аналитик",
+   "answer": ""
+  }
+ ],
+ "checklist": [
+  {
+   "item": "Техническое требование зафиксировано и покрывает бизнес-требование",
+   "status": "Частично",
+   "justification": "Цель «узнать о достижении личного бюджета в момент покупки» (L0023) не полностью покрывается нефункциональным требованием с допуском задержки push до 1 минуты (L0046), а также содержатся пробелы в обработке возвратов и операций в валюте.",
+   "finding_ids": [
+    "F-03",
+    "F-08",
+    "F-10",
+    "F-11"
+   ]
+  },
+  {
+   "item": "Функциональная спецификация имеет структурированное описание (по стандарту, шаблону)",
+   "status": "Частично",
+   "justification": "Разделы спецификации присутствуют, однако метаданные документа не заполнены (L0068), а у части блоков отсутствуют сквозные идентификаторы требований (L0023, L0029, L0034).",
+   "finding_ids": [
+    "F-23",
+    "F-24"
+   ]
+  },
+  {
+   "item": "Sequence-диаграммы, предусмотрены взаимодействия систем, компонентов и решений",
+   "status": "Да",
+   "justification": "В документе приведено текстовое описание Sequence Diagram (L0042–L0043), описывающее взаимодействие Процессинга, Сервиса расходов, Настроек и Push-сервиса.",
+   "finding_ids": []
+  },
+  {
+   "item": "Требование покрывает спецификацию UX/UI дизайна",
+   "status": "Частично",
+   "justification": "Описан состав элементов экрана (L0029), но отсутствуют тексты сообщений об ошибках, правила блокировки кнопки «Сохранить» и макеты интерфейса.",
+   "finding_ids": [
+    "F-04"
+   ]
+  },
+  {
+   "item": "Реализация задачи/проекта предусматривает схему отката решений",
+   "status": "Нет",
+   "justification": "В строке чек-листа ревью указано «При невозможности отката — варианты скрытия функционала» (L0076), однако сам порядок отката или механизм feature toggle в документе не описан.",
+   "finding_ids": [
+    "F-17"
+   ]
+  },
+  {
+   "item": "Требование может быть протестировано",
+   "status": "Частично",
+   "justification": "Требования Ф-1 и Ф-4 не покрыты критериями приёмки (L0061–L0065), а нефункциональное требование по времени доставки push не содержит целевого перцентиля (L0046).",
+   "finding_ids": [
+    "F-07",
+    "F-14"
+   ]
+  },
+  {
+   "item": "Требование предусматривает модель данных или поток, содержит описание",
+   "status": "Частично",
+   "justification": "Требования к данным приведены (L0049), но не содержат ключевых полей для связывания возврата с исходной операцией (`parent_operation_id`), а также смешивают единицы измерения (тиыны и тенге).",
+   "finding_ids": [
+    "F-13",
+    "F-15"
+   ]
+  },
+  {
+   "item": "Требование не имеет противоречий или явных показателей операционных рисков",
+   "status": "Нет",
+   "justification": "Обнаружены критические противоречия между Ф-2 и Критерием приёмки №2 по дате проведения операции (L0038, L0064), а также между Ф-3 и Ф-4 по повторной отправке push (L0039, L0040).",
+   "finding_ids": [
+    "F-01",
+    "F-02"
+   ]
+  },
+  {
+   "item": "Требование содержит архитектуру и согласовано с архитекторами",
+   "status": "Частично",
+   "justification": "Архитектура решения описана верхнеуровнево (L0025–L0026), но блок согласующих лиц не заполнен (L0089–L0092).",
+   "finding_ids": [
+    "F-24"
+   ]
+  },
+  {
+   "item": "Все изменения, влияющие на иные продукты/системы в требовании, согласованы с ответственными лицами",
+   "status": "Нет данных",
+   "justification": "Блок согласующих в источнике не заполнен, подписи ответственных лиц отсутствуют (L0089–L0092).",
+   "finding_ids": [
+    "F-24"
+   ]
+  },
+  {
+   "item": "Структура требований не несёт изменений и рисков информационной безопасности",
+   "status": "Нет",
+   "justification": "Спецификация API передает чувствительные параметры изменения лимита в открытых query-параметрах GET-запроса (L0104, L0109), создавая риск утечки данных в логах веб-серверов.",
+   "finding_ids": [
+    "F-19"
+   ]
+  },
+  {
+   "item": "В требовании присутствует схема полного бизнес-процесса и часть реализуемой доработки",
+   "status": "Частично",
+   "justification": "BPMN-схема описывает только положительный сценарий (L0034), альтернативные ветви (недостижение порога, отключенные уведомления, сбои) отсутствуют.",
+   "finding_ids": [
+    "F-05"
+   ]
+  },
+  {
+   "item": "Требование носит интеграционный характер и имеет четкую постановку реализации интеграционного взаимодействия",
+   "status": "Нет",
+   "justification": "Спецификация REST API содержит многочисленные ошибки: неверный HTTP-метод GET для записи (L0104), возврат статуса HTTP 200 при ошибках (L0171), нестыковка типов данных (L0143, L0156).",
+   "finding_ids": [
+    "F-18",
+    "F-20",
+    "F-21",
+    "F-22"
+   ]
+  },
+  {
+   "item": "Поддерживается версионность документа / зафиксирована",
+   "status": "Нет",
+   "justification": "Раздел ревью содержит явное указание: «Документ (версия/дата) в источнике не заполнен» (L0068).",
+   "finding_ids": [
+    "F-24"
+   ]
+  }
+ ],
+ "clarification_log": [],
+ "resolved_finding_ids": [],
+ "verdict_after_clarification": "",
+ "verdict": {
+  "ready_for_development": "нет",
+  "ready_for_testing": "нет",
+  "summary": "Документ содержит два критических противоречия в ключевой бизнес-логике (определение месяца операции для расчёта бюджета и правила отправки push при изменении порога), а также существенные ошибки в спецификации REST API и информационной безопасности. Начинать разработку и тестирование до устранения дефектов нельзя, так как реализация приведет к некорректным финансовым расчетам и переделкам.",
+  "top_fixes": [
+   "Устранить противоречие между Ф-2 и Критерием приёмки №2 (F-01): зафиксировать единый подход к определению месяца операции (по дате совершения или дате клиринга).",
+   "Устранить конфликт между Ф-3 и Ф-4 (F-02): четко определить, отправляется ли push при изменении порога, если в текущем месяце лимит push уже исчерпан.",
+   "Исправить REST API спецификацию (F-18, F-19, F-22): изменить HTTP-метод сохраняющего запроса `/alerts/saveLimit` с GET на POST/PUT, перенести параметры из Query в JSON Request Body.",
+   "Исправить обработку ошибок в API (F-20): при ошибке валидации возвращать корректный HTTP-статус 400 Bad Request вместо HTTP 200 OK с `result: ERROR`.",
+   "Дополнить правила расчёта расходов (F-08, F-09, F-12): описать сценарии включения опции в середине месяца, обработки возвратов прошлых периодов и повторных превышений порога.",
+   "Привести в соответствие единицы измерения и типы данных (F-15, F-21): унифицировать типы полей (integer/string) в API и единицы хранения денег (тенге/тиыны) в модели данных.",
+   "Заполнить метаданные документа и критерии приёмки для требований Ф-1 и Ф-4 (F-07, F-24)."
+  ]
+ }
+}
