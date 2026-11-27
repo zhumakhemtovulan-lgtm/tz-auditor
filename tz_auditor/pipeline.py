@@ -35,7 +35,8 @@ MAX_CONTEXT_LINES = 1500
 ISO_INDIVIDUAL = ["NECESSARY", "APPROPRIATE", "UNAMBIGUOUS", "COMPLETE", "SINGULAR",
                   "FEASIBLE", "VERIFIABLE", "CORRECT", "CONFORMING"]
 SET_CODES = ["SET_COMPLETE", "SET_CONSISTENT", "SET_FEASIBLE", "SET_COMPREHENSIBLE",
-             "SET_VALIDATABLE", "RANKED", "MODIFIABLE", "TRACEABLE"]
+             "SET_VALIDATABLE", "SET_NO_DUPLICATES", "SET_NO_DESIGN", "SET_NO_TBD",
+             "RANKED", "MODIFIABLE", "TRACEABLE"]
 
 
 def agent_version() -> str:
@@ -621,6 +622,19 @@ class Auditor:
         self.log("3/10 Нарезка на требования")
         reqs, title = self.extract(doc, index)
         self.log(f"  · требований: {len(reqs)}")
+        no_id = [r for r in reqs if not r.doc_id or r.doc_id.startswith("(")]
+        if no_id and reqs:
+            # Правило без ИИ (IEEE 830, прослеживаемость): одно сводное замечание, а не по замечанию на каждое.
+            signals.append(Finding(
+                scope="set", criterion="TRACEABLE", rule="DOC-TRACE", severity="minor",
+                title=f"[RULE-ID] {len(no_id)} из {len(reqs)} требований без идентификатора",
+                description="У требований " + ", ".join(f"{r.rid} {r.doc_id}".strip() for r in no_id) +
+                            " нет собственного номера в документе: на них нельзя сослаться в тестах, задачах и "
+                            "при изменениях (IEEE 830, п. 4.3, прослеживаемость).",
+                quotes=[r.quote[:150] for r in no_id[:3]], lines=sorted({ln for r in no_id for ln in r.lines}),
+                recommendation="Присвоить каждому требованию уникальный идентификатор (например, НФ-1, Д-1, КП-1).",
+                source="rule", verified=True, protected=True,
+                verification_note="найдено правилом по результатам нарезки"))
 
         self.log("4/10 Проверка каждого требования")
         assessments, req_findings = self.assess(doc, reqs, signals)
@@ -673,7 +687,7 @@ class Auditor:
         # Сигналы правил без ИИ уровня «существенный» и выше идут к критику вместе с остальными:
         # он отметит дубли с замечаниями модели.
         for sig in signals:
-            if sig.severity in ("critical", "major"):
+            if sig.severity in ("critical", "major") or sig.title.startswith("[RULE-ID]"):
                 findings.append(sig.model_copy(deep=True))
         self.log(f"  · подтверждено цитатами: {len(findings)}, отклонено: {len(rejected)}")
 

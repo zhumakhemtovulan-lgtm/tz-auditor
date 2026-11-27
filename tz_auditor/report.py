@@ -17,7 +17,9 @@ CRIT_RU = {
     "VERIFIABLE": "Проверяемость", "CORRECT": "Корректность", "CONFORMING": "Соответствие шаблону",
     "SET_COMPLETE": "Полнота набора", "SET_CONSISTENT": "Непротиворечивость набора",
     "SET_FEASIBLE": "Выполнимость набора", "SET_COMPREHENSIBLE": "Понятность набора",
-    "SET_VALIDATABLE": "Возможность валидации", "RANKED": "Ранжированность (IEEE 830)",
+    "SET_VALIDATABLE": "Возможность валидации",
+    "SET_NO_DUPLICATES": "Отсутствие дублей", "SET_NO_DESIGN": "Нет лишних проектных решений",
+    "SET_NO_TBD": "Нет открытых мест (TBD)", "RANKED": "Ранжированность (IEEE 830)",
     "MODIFIABLE": "Модифицируемость (IEEE 830)", "TRACEABLE": "Прослеживаемость (IEEE 830)",
 }
 SHORT = ["NECESSARY", "APPROPRIATE", "UNAMBIGUOUS", "COMPLETE", "SINGULAR", "FEASIBLE",
