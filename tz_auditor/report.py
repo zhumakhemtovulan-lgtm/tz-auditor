@@ -159,6 +159,9 @@ class ReportWriter:
             for q in hq:
                 L.append(f"- **{q.qid}.** {q.question}")
             L.append("")
+        if r.clarification_log:
+            L += [f"**После ответов автора:** закрыто {len(r.resolved_finding_ids)} замечаний, начинать разработку — "
+                  f"**{r.verdict_after_clarification or 'см. раздел 5'}** (раздел 5).", ""]
         L += [f"Проверка заняла {p.duration_sec / 60:.1f} мин; найдено {len(r.findings)} дефектов в {len(r.requirements)} "
               f"требованиях, каждый подтверждён цитатой с номером строки. Полный разбор — ниже.", ""]
 
@@ -279,7 +282,18 @@ class ReportWriter:
                 L += [f"_Связано:_ {refs}", ""]
 
         if r.clarification_log:
+            res = set(r.resolved_finding_ids)
+            if not res:
+                for c in r.clarification_log:
+                    res.update(c.get("resolved_finding_ids", []) or [])
+            open_f = [f for f in r.findings if f.fid not in res]
+            sev_open = Counter(f.severity for f in open_f)
+            after = r.verdict_after_clarification or ("нет" if sev_open["critical"] else "условно" if sev_open["major"] else "да")
             L += ["### Ответы автора и пересмотр выводов", "",
+                  f"Автор ответил на {len(r.clarification_log)} вопросов. Закрыто ответами: **{len(res)}** из "
+                  f"{len(r.findings)} замечаний. Осталось открытых: критичных {sev_open['critical']}, "
+                  f"существенных {sev_open['major']}, незначительных {sev_open['minor']}. "
+                  f"**Начинать разработку после уточнения: {after}.**", "",
                   "| Вопрос | Ответ | Что меняется | Закрытые замечания | Новая формулировка |",
                   "| :--- | :--- | :--- | :--- | :--- |"]
             for c in r.clarification_log:

@@ -148,4 +148,6 @@ class AuditResult(BaseModel):
     questions: list[Question] = Field(default_factory=list)
     checklist: list[ChecklistItem] = Field(default_factory=list)
     clarification_log: list[dict] = Field(default_factory=list)
+    resolved_finding_ids: list[str] = Field(default_factory=list)
+    verdict_after_clarification: str = ""
     verdict: Verdict = Field(default_factory=Verdict)

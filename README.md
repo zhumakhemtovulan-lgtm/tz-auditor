@@ -77,6 +77,14 @@ python -m tz_auditor docs/requirements.md reports/report.md --interactive
 python -m tz_auditor docs/requirements.md reports/report_v2.md --answers reports/report.answers.yaml
 ```
 
+Если отчёт уже готов, ответы можно учесть без полного перезапуска — одним запросом к модели:
+
+```bash
+python -m tz_auditor.clarify reports/report.json reports/report.answers.yaml reports/report_v2.md
+```
+
+В новой версии отчёта появится раздел «Ответы автора и пересмотр выводов»: какие замечания закрыты, как переписать требования и можно ли теперь начинать разработку.
+
 Повторный запуск почти бесплатный: уже полученные ответы модели берутся из кэша `.cache/llm`, новый запрос только один — пересмотр по ответам.
 
 ---
