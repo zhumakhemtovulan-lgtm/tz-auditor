@@ -1,0 +1,123 @@
+# Эталонное ручное ревью документа docs/requirements.md.
+# Агент этот файл НЕ читает: он используется только в eval/eval.py для измерения качества.
+# lines — номера строк документа; keywords — слова, по которым замечание агента сопоставляется с дефектом.
+# verified — проверено командой вручную (true) или ещё нет (false).
+
+- id: G-01
+  title: "Ф-2 (месяц по дате совершения) противоречит критерию приёмки №2 (февраль по дате проведения)"
+  lines: [38, 64]
+  keywords: ["месяц", "cutoff"]
+  severity: critical
+  verified: false
+
+- id: G-02
+  title: "Ф-3 (максимум один push в месяц) противоречит Ф-4 (push независимо от истории)"
+  lines: [39, 40]
+  keywords: ["push"]
+  severity: critical
+  verified: false
+
+- id: G-03
+  title: "Суммы в тиынах, порог в тенге — пересчёт не описан"
+  lines: [49]
+  keywords: ["тиын", "units"]
+  severity: major
+  verified: false
+
+- id: G-04
+  title: "Нет связи возврата с исходной покупкой в модели данных"
+  lines: [38, 49]
+  keywords: ["связ"]
+  severity: major
+  verified: false
+
+- id: G-05
+  title: "Не описано: новый порог ниже уже потраченной суммы / включение при превышенном пороге"
+  lines: [37, 40]
+  keywords: ["выше", "превыш"]
+  severity: major
+  verified: false
+
+- id: G-06
+  title: "Не определён признак повторной доставки события (идемпотентность)"
+  lines: [52]
+  keywords: ["идемпотент"]
+  severity: major
+  verified: false
+
+- id: G-07
+  title: "«В течение минуты» без перцентиля и условий нагрузки"
+  lines: [46]
+  keywords: ["перцентил", "measurable"]
+  severity: major
+  verified: false
+
+- id: G-08
+  title: "Сохранение порога через HTTP GET"
+  lines: [103, 104, 120]
+  keywords: ["get"]
+  severity: major
+  verified: false
+
+- id: G-09
+  title: "Идентификатор карты и сумма в параметрах URL (query)"
+  lines: [109, 140, 142, 143, 144]
+  keywords: ["query", "адресн"]
+  severity: major
+  verified: false
+
+- id: G-10
+  title: "Ошибка бизнес-логики возвращается с кодом 200"
+  lines: [121, 171]
+  keywords: ["200"]
+  severity: major
+  verified: false
+
+- id: G-11
+  title: "403 в заголовке против 404 в тексте"
+  lines: [188, 189]
+  keywords: ["403"]
+  severity: major
+  verified: false
+
+- id: G-12
+  title: "Разные типы полей в запросе и ответе (amount, enabled)"
+  lines: [143, 144, 156, 157]
+  keywords: ["тип"]
+  severity: major
+  verified: false
+
+- id: G-13
+  title: "Пустые Prod URL и Swagger"
+  lines: [108, 110]
+  keywords: ["prod", "swagger"]
+  severity: minor
+  verified: false
+
+- id: G-14
+  title: "Нет схемы отката / скрытия функционала"
+  lines: [76]
+  keywords: ["откат", "rollback"]
+  severity: major
+  verified: false
+
+- id: G-15
+  title: "Не заполнены версия, согласующие, чек-лист ревью, раздел тестирования"
+  lines: [57, 68]
+  keywords: ["hygiene", "согласу", "верси", "tbd"]
+  severity: minor
+  verified: false
+
+- id: G-16
+  title: "Ф-1 и Ф-4 без критериев приёмки"
+  lines: [37, 40]
+  keywords: ["без критериев"]
+  severity: major
+  verified: false
+
+- id: G-17
+  title: "Description метода «сохранение» говорит «чтение»; метода чтения нет, хотя строка 52: «читает и сохраняет»"
+  lines: [52, 103]
+  keywords: ["чтени", "description"]
+  severity: major
+  verified: false
