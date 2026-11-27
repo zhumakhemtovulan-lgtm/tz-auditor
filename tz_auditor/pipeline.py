@@ -26,7 +26,7 @@ from .config import Settings
 from .llm import LLMClient, LLMError
 from .loader import Document, load_document
 from .rules import run_rules
-from .schemas import (SEVERITY_ORDER, AuditResult, ChecklistItem, CriterionScore, Finding,
+from .schemas import (SEVERITY_ORDER, AcceptanceCheck, AuditResult, RuleCheck, ChecklistItem, CriterionScore, Finding,
                       Question, Requirement, RequirementAssessment, RunPassport, Scenario, Verdict)
 from .verify import QuoteIndex, clean_line
 
@@ -76,6 +76,7 @@ class Auditor:
         self.log = log
         self.llm = LLMClient(settings, log=log)
         self.warnings: list[str] = []
+        self.ac_all_match: set[str] = set()
 
     # ------------------------------------------------------------------ helpers
     def _doc_context(self, doc: Document) -> str:
@@ -192,6 +193,188 @@ class Auditor:
                 assessments.append(RequirementAssessment(rid=r.rid, scores=[], verdict="ok"))
         return assessments, findings
 
+    def ac_check(self, doc, reqs: list[Requirement]):
+        """Критерии приёмки «исполняются» по правилам документа, результат сравнивается с ожидаемым."""
+        acs = [r for r in reqs if "приём" in r.kind.lower() or "прием" in r.kind.lower()]
+        frs = [r for r in reqs if r.kind.lower().startswith("функц")]
+        if not acs:
+            f = Finding(scope="set", criterion="SET_VALIDATABLE", rule="DOC-TRACE", severity="critical",
+                        title="В документе нет критериев приёмки",
+                        description="Не найдено ни одного критерия приёмки: требования нечем проверить.",
+                        quotes=[frs[0].quote[:200]] if frs else [], requirement_ids=[r.rid for r in frs])
+            return [], [r.rid for r in frs], [f] if frs else []
+        prompt = P.fill(P.AC_CHECK, requirements=_dump(reqs, ["rid", "doc_id", "kind", "quote"]),
+                        criteria_list=_dump(acs, ["rid", "doc_id", "quote"]), document=self._doc_context(doc))
+        # Два независимых прохода: слабая модель иногда путает даты и роли чисел.
+        # Если хотя бы один проход нашёл расхождение, оно идёт к критику с обоими выводами.
+        runs = []
+        for n, variant in enumerate(("", "\n\nПроверяй критерии в обратном порядке и особенно внимательно "
+                                         "к датам: дата совершения и дата проведения — разные факты."), 1):
+            try:
+                runs.append(self.llm.complete_json(f"ac-check-{n}", P.SYSTEM, prompt + variant,
+                                                   validate=lambda d: _need(d, "checks")))
+            except LLMError as exc:
+                if not runs and n == 2:
+                    raise
+                self.log(f"  ! ac-check-{n}: {exc}")
+        data = {"checks": [], "coverage": []}
+        merged: dict[str, dict] = {}
+        self.ac_all_match = set()
+        verdicts: dict[str, list[str]] = {}
+        for run in runs:
+            for c in run.get("checks", []):
+                if isinstance(c, dict):
+                    verdicts.setdefault(c.get("criterion_rid"), []).append(c.get("verdict"))
+        self.ac_all_match = {k for k, v in verdicts.items() if len(v) >= 2 and all(x == "match" for x in v)}
+        rank = {"mismatch": 0, "undetermined": 1, "match": 2}
+        for run in runs:
+            for c in run.get("checks", []):
+                if not isinstance(c, dict):
+                    continue
+                cur = merged.get(c.get("criterion_rid"))
+                if cur is None or rank.get(c.get("verdict"), 1) < rank.get(cur.get("verdict"), 1):
+                    merged[c.get("criterion_rid")] = c
+            data["coverage"].extend(run.get("coverage", []) or [])
+        data["checks"] = list(merged.values())
+        by_id = {r.rid: r for r in reqs}
+        checks, findings = [], []
+        for c in data.get("checks", []):
+            if not isinstance(c, dict) or c.get("criterion_rid") not in by_id:
+                continue
+            if c.get("verdict") not in ("match", "mismatch", "undetermined"):
+                c["verdict"] = "undetermined"
+            ac = AcceptanceCheck.model_validate({k: v for k, v in c.items() if k in AcceptanceCheck.model_fields})
+            checks.append(ac)
+            if ac.verdict == "match":
+                continue
+            crit_req = by_id[ac.criterion_rid]
+            rule_rids = [st.get("rid") for st in ac.steps if isinstance(st, dict) and st.get("rid") in by_id]
+            quotes = [q for q in c.get("quotes", []) if isinstance(q, str)] or [crit_req.quote[:200]]
+            if ac.verdict == "mismatch":
+                findings.append(Finding(
+                    scope="set", criterion="SET_CONSISTENT", rule="DOC-TRACE", severity="critical",
+                    requirement_ids=[ac.criterion_rid] + rule_rids,
+                    title=f"Критерий приёмки {crit_req.doc_id} противоречит требованиям",
+                    description=(f"По требованиям получается: {ac.derived_result}. В критерии ожидается: "
+                                 f"{ac.stated_result}. {ac.explanation}"),
+                    quotes=quotes,
+                    impact="Разработчик реализует правило из требования, а тестировщик проверит по критерию: "
+                           "тест упадёт или будет принят неверный результат.",
+                    protected=True,
+                    recommendation="Решить, какое правило верное, и привести требование и критерий к одному результату."))
+            else:
+                findings.append(Finding(
+                    scope="set", criterion="SET_COMPLETE", rule="DOC-TRACE", severity="major",
+                    requirement_ids=[ac.criterion_rid] + rule_rids,
+                    title=f"Результат критерия {crit_req.doc_id} не выводится из требований",
+                    description=f"{ac.explanation} Ожидается: {ac.stated_result}.",
+                    quotes=quotes,
+                    recommendation="Дописать в требования правило, из которого следует ожидаемый результат."))
+        covered = set()
+        for cv in data.get("coverage", []) or []:
+            if isinstance(cv, dict) and cv.get("covered_by"):
+                covered.add(cv.get("rid"))
+        uncovered = [r.rid for r in frs if r.rid not in covered]
+        if uncovered:
+            ur = [by_id[x] for x in uncovered]
+            findings.append(Finding(
+                scope="set", criterion="TRACEABLE", rule="DOC-TRACE", severity="major",
+                requirement_ids=uncovered,
+                title="Функциональные требования без критериев приёмки",
+                description="Для требований " + ", ".join(r.doc_id or r.rid for r in ur) +
+                            " нет ни одного критерия приёмки: их выполнение нечем подтвердить.",
+                quotes=[r.quote[:150] for r in ur[:3]],
+                recommendation="Добавить критерии приёмки (условия, действие, ожидаемый результат) для каждого требования."))
+        return checks, uncovered, findings
+
+    def rules_pass(self, doc, reqs: list[Requirement]):
+        """Явный проход по предметным правилам методики команды."""
+        data = self.llm.complete_json(
+            "rules-pass", P.SYSTEM,
+            P.fill(P.RULES_PASS, domain=P.methodology("domain_rules.md"), severity=P.methodology("severity.md"),
+                   requirements=_dump(reqs, ["rid", "doc_id", "kind", "summary"]), document=self._doc_context(doc)),
+            validate=lambda d: _need(d, "rules"),
+        )
+        checks, findings = [], []
+        for rc in data.get("rules", []):
+            if not isinstance(rc, dict) or not rc.get("code"):
+                continue
+            if rc.get("status") not in ("ok", "violated", "missing", "n/a"):
+                rc["status"] = "n/a"
+            checks.append(RuleCheck.model_validate({k: v for k, v in rc.items() if k in RuleCheck.model_fields}))
+            if rc["status"] in ("violated", "missing"):
+                sev = rc.get("severity") if rc.get("severity") in ("critical", "major", "minor") else "major"
+                quotes = rc.get("quotes") or []
+                if isinstance(quotes, str):
+                    quotes = [quotes]
+                findings.append(Finding(
+                    scope="set", criterion="SET_CONSISTENT" if rc["status"] == "violated" else "SET_COMPLETE",
+                    rule=str(rc["code"]), severity=sev, requirement_ids=list(rc.get("requirement_ids") or []),
+                    title=(f"Нарушено правило {rc['code']}" if rc["status"] == "violated" else f"Не описано: {rc['code']}")
+                          + (f" — {str(rc.get('scenario'))[:80]}" if rc.get("scenario") else ""),
+                    description=str(rc.get("explanation", "")) + (f" Сценарий: {rc['scenario']}" if rc.get("scenario") else ""),
+                    quotes=[str(q) for q in quotes],
+                    recommendation="Дописать правило в требования и добавить критерий приёмки для этого сценария."))
+        return checks, findings
+
+    def pair_check(self, doc, reqs: list[Requirement]) -> list[Finding]:
+        """Попарно сравнивает функциональные требования: ищет ситуацию, где они дают несовместимый результат."""
+        frs = [r for r in reqs if r.kind.lower().startswith("функц")][:10]
+        if len(frs) < 2:
+            return []
+        pairs = [{"a": a.rid, "b": b.rid} for i, a in enumerate(frs) for b in frs[i + 1:]]
+        data = self.llm.complete_json(
+            "pair-check", P.SYSTEM,
+            P.fill(P.PAIR_CHECK, requirements=_dump(frs, ["rid", "doc_id", "quote"]),
+                   pairs=json.dumps(pairs, ensure_ascii=False), document=self._doc_context(doc)),
+            validate=lambda d: _need(d, "pairs"),
+        )
+        by_id = {r.rid: r for r in frs}
+        out = []
+        for p in data.get("pairs", []):
+            if not isinstance(p, dict) or p.get("conflict") is not True:
+                continue
+            a, b = by_id.get(p.get("a")), by_id.get(p.get("b"))
+            if not a or not b:
+                continue
+            quotes = [q for q in (p.get("quotes") or []) if isinstance(q, str)] or [a.quote[:200], b.quote[:200]]
+            out.append(Finding(
+                scope="set", criterion="SET_CONSISTENT", rule="FIN-CONFLICT", severity="critical",
+                requirement_ids=[a.rid, b.rid],
+                title=f"Требования {a.doc_id or a.rid} и {b.doc_id or b.rid} дают несовместимый результат",
+                description=(f"Ситуация: {p.get('situation', '')}. По {a.doc_id or a.rid}: {p.get('result_a', '')}. "
+                             f"По {b.doc_id or b.rid}: {p.get('result_b', '')}. {p.get('explanation', '')}"),
+                quotes=quotes,
+                impact="Разработчик выберет одно из правил наугад; тестировщик проверит по другому.",
+                recommendation="Определить приоритет правил для этой ситуации и записать его явно, добавить критерий приёмки."))
+        return out
+
+    def _scenario_findings(self, scenarios, reqs: list[Requirement]) -> list[Finding]:
+        """Конфликт или пробел в сценарном прогоне — это замечание. Цитаты берём из задействованных требований."""
+        by_id = {r.rid: r for r in reqs}
+        out = []
+        for sc in scenarios:
+            if sc.status == "ok":
+                continue
+            rids = [x for x in sc.rules_applied if x in by_id]
+            rids += [x.get("rid") for x in sc.per_rule if isinstance(x, dict) and x.get("rid") in by_id and x.get("rid") not in rids]
+            if not rids:
+                continue
+            per = "; ".join(f"{x.get('rid')}: {x.get('result')}" for x in sc.per_rule if isinstance(x, dict))
+            conflict = sc.status == "conflict"
+            out.append(Finding(
+                scope="set", criterion="SET_CONSISTENT" if conflict else "SET_COMPLETE",
+                rule="FIN-CONFLICT" if conflict else "", severity="critical" if conflict else "major",
+                requirement_ids=rids,
+                title=("Сценарий даёт разный результат по разным пунктам: " if conflict else "Сценарий не описан: ")
+                      + sc.scenario[:90],
+                description=f"Сценарий: {sc.scenario}. Итог по документу: {sc.outcome}." + (f" По пунктам: {per}." if per else ""),
+                quotes=[by_id[x].quote[:220] for x in rids[:3]],
+                impact="Разработчик и тестировщик по-разному реализуют и проверят этот случай." if conflict
+                       else "Поведение системы в этом случае будет выбрано разработчиком наугад.",
+                recommendation="Описать результат для этого сценария одним правилом и добавить критерий приёмки."))
+        return out
+
     def set_review(self, doc, reqs, known, signals):
         data = self.llm.complete_json(
             "set-review", P.SYSTEM,
@@ -253,20 +436,55 @@ class Auditor:
                 rejected.append(f)
         return kept, rejected
 
-    def critic(self, doc, findings: list[Finding]):
+    def critic(self, doc, findings: list[Finding], evidence: str = "нет"):
         if not findings:
             return findings, []
         for i, f in enumerate(findings, 1):
             f.fid = f"P-{i:02d}"
-        data = self.llm.complete_json(
-            "critic", P.SYSTEM,
-            P.fill(P.CRITIC, severity=P.methodology("severity.md"),
-                   findings=_dump(findings, ["fid", "requirement_ids", "criterion", "severity", "title",
-                                             "description", "quotes"]),
-                   document=self._doc_context(doc)),
-            validate=lambda d: _need(d, "reviews"),
-        )
+        dump = _dump(findings, ["fid", "source", "requirement_ids", "criterion", "rule", "severity",
+                                "title", "description", "quotes"])
+        runs = []
+        # Два независимых прохода критика (второй — в обратном порядке замечаний).
+        for n, items in enumerate((dump, json.dumps(list(reversed(json.loads(dump))), ensure_ascii=False, indent=1)), 1):
+            try:
+                runs.append(self.llm.complete_json(
+                    f"critic-{n}", P.SYSTEM,
+                    P.fill(P.CRITIC, severity=P.methodology("severity.md"), evidence=evidence,
+                           findings=items, document=self._doc_context(doc)),
+                    validate=lambda d: _need(d, "reviews")))
+            except LLMError as exc:
+                if n == 2 and runs:
+                    self.log(f"  ! critic-2: {exc}")
+                    continue
+                raise
+        votes: dict[str, list[dict]] = {}
+        for run in runs:
+            for rv in run.get("reviews", []):
+                if isinstance(rv, dict) and rv.get("fid"):
+                    votes.setdefault(rv["fid"], []).append(rv)
+        reviews = []
+        for fid, vs in votes.items():
+            first = dict(vs[0])
+            false_votes = [v for v in vs if v.get("verdict") == "rejected" and not v.get("duplicate_of")]
+            dup_votes = [v for v in vs if v.get("duplicate_of")]
+            if dup_votes:
+                first["duplicate_of"] = dup_votes[0]["duplicate_of"]
+                first["verdict"] = "rejected"
+                first["note"] = dup_votes[0].get("note", "")
+            elif len(false_votes) == len(vs) and len(vs) == len(runs):
+                first["verdict"] = "rejected"
+                first["note"] = false_votes[0].get("note", "")
+            else:
+                first["verdict"] = "confirmed"
+                kept_note = [v for v in vs if v.get("verdict") == "confirmed"]
+                first["note"] = (kept_note[0].get("note", "") if kept_note else "")
+                if false_votes:
+                    first["note"] = ("один из двух проходов критика сомневался: " + str(false_votes[0].get("note", ""))[:150]
+                                     + (" | " + first["note"] if first["note"] else ""))
+            reviews.append(first)
+        data = {"reviews": reviews}
         by_id = {f.fid: f for f in findings}
+        dup_of: dict[str, str] = {}
         for rv in data.get("reviews", []):
             if not isinstance(rv, dict) or rv.get("fid") not in by_id:
                 continue
@@ -274,14 +492,48 @@ class Auditor:
             dup = rv.get("duplicate_of") or ""
             verdict = rv.get("verdict")
             if dup and dup in by_id and dup != f.fid:
-                verdict = "rejected"
-                rv["note"] = f"дубль замечания «{by_id[dup].title}». " + str(rv.get("note", ""))
-                main = by_id[dup]
-                main.requirement_ids = sorted(set(main.requirement_ids) | set(f.requirement_ids))
+                dup_of[f.fid] = dup
             f.critic_verdict = "confirmed" if verdict == "confirmed" else "rejected" if verdict == "rejected" else "unchecked"
             f.critic_note = str(rv.get("note", ""))
+            if f.protected and f.critic_verdict == "rejected" and not dup:
+                f.critic_verdict = "confirmed"
+                f.critic_note = ("замечание подтверждено жёстким доказательством (правило без ИИ или пересчёт "
+                                 "критерия приёмки); сомнение критика: " + f.critic_note[:150])
             if rv.get("severity") in ("critical", "major", "minor"):
                 f.severity = rv["severity"]
+        # Дубли: идём по цепочке до «главного» замечания. Взаимные дубли (A→B, B→A) не должны
+        # удалить оба: в цикле главным становится первое по порядку.
+        def head(fid: str) -> str:
+            seen, cur = [fid], dup_of[fid]
+            while cur in dup_of and cur not in seen:
+                seen.append(cur)
+                cur = dup_of[cur]
+            return min(seen) if cur in seen else cur
+
+        heads = {fid: head(fid) for fid in dup_of}
+        # Если в группе дублей есть защищённое замечание, а главным выбрано незащищённое,
+        # защищённое переносит свойства на главное (главное наследует защиту).
+        for fid, h in heads.items():
+            if by_id[fid].protected and not by_id[h].protected:
+                by_id[h].protected = True
+                if by_id[h].critic_verdict == "rejected" and h not in dup_of:
+                    by_id[h].critic_verdict = "confirmed"
+        for h in set(heads.values()):
+            main = by_id[h]
+            if h in dup_of:  # главное в цикле дублей: отклонено было только как дубль
+                main.critic_verdict = "confirmed"
+                main.critic_note = "основное замечание в группе дублей"
+        for fid, h in heads.items():
+            if h == fid:
+                continue
+            f, main = by_id[fid], by_id[h]
+            if main.critic_verdict == "rejected":
+                continue  # основное признано ложным — дубль оцениваем по его собственному вердикту
+            main.requirement_ids = sorted(set(main.requirement_ids) | set(f.requirement_ids))
+            if SEVERITY_ORDER[f.severity] < SEVERITY_ORDER[main.severity]:
+                main.severity = f.severity
+            f.critic_verdict = "rejected"
+            f.critic_note = f"дубль замечания «{main.title}». " + f.critic_note
         kept = [f for f in findings if f.critic_verdict != "rejected"]
         rejected = [f for f in findings if f.critic_verdict == "rejected"]
         return kept, rejected
@@ -355,46 +607,114 @@ class Auditor:
     def run(self, doc_path: str, answers: dict[str, str] | None = None, ask=None) -> tuple[AuditResult, Document]:
         t0 = time.time()
         started = datetime.now().astimezone()
-        self.log("1/8 Чтение документа")
+        self.log("1/10 Чтение документа")
         doc = load_document(doc_path)
         for w in doc.warnings:
             self.log(f"  ! {w}")
         index = QuoteIndex(doc)
 
-        self.log("2/8 Автоматические правила (без ИИ)")
+        self.log("2/10 Автоматические правила (без ИИ)")
         signals = run_rules(doc)
         self.log(f"  · сигналов: {len(signals)}")
 
-        self.log("3/8 Нарезка на требования")
+        self.log("3/10 Нарезка на требования")
         reqs, title = self.extract(doc, index)
         self.log(f"  · требований: {len(reqs)}")
 
-        self.log("4/8 Проверка каждого требования")
+        self.log("4/10 Проверка каждого требования")
         assessments, req_findings = self.assess(doc, reqs, signals)
 
-        self.log("5/8 Проверка набора и сценарный прогон")
+        self.log("5/10 Проверка критериев приёмки исполнением")
+        ac_checks, uncovered, ac_findings = [], [], []
         try:
-            set_summary, set_scores, set_findings, scenarios = self.set_review(doc, reqs, req_findings, signals)
+            ac_checks, uncovered, ac_findings = self.ac_check(doc, reqs)
+            mism = sum(c.verdict == "mismatch" for c in ac_checks)
+            self.log(f"  · критериев проверено: {len(ac_checks)}, расхождений: {mism}, без критериев: {len(uncovered)}")
+        except LLMError as exc:
+            self.warnings.append(f"Шаг «проверка критериев приёмки» не выполнен: {exc}.")
+            self.log(f"  ! {self.warnings[-1]}")
+
+        self.log("6/10 Проход по предметным правилам методики")
+        rule_checks, rp_findings = [], []
+        try:
+            rule_checks, rp_findings = self.rules_pass(doc, reqs)
+            self.log(f"  · правил: {len(rule_checks)}, нарушено: {sum(r.status == 'violated' for r in rule_checks)}, "
+                     f"не описано: {sum(r.status == 'missing' for r in rule_checks)}")
+        except LLMError as exc:
+            self.warnings.append(f"Шаг «предметные правила» не выполнен: {exc}.")
+            self.log(f"  ! {self.warnings[-1]}")
+
+        pc_findings = []
+        try:
+            pc_findings = self.pair_check(doc, reqs)
+            self.log(f"  · попарная проверка требований: несовместимых пар {len(pc_findings)}")
+        except LLMError as exc:
+            self.warnings.append(f"Шаг «попарная проверка» не выполнен: {exc}.")
+            self.log(f"  ! {self.warnings[-1]}")
+
+        known = req_findings + ac_findings + rp_findings + pc_findings
+        self.log("7/10 Проверка набора и сценарный прогон")
+        try:
+            set_summary, set_scores, set_findings, scenarios = self.set_review(doc, reqs, known, signals)
         except LLMError as exc:
             self.warnings.append(f"Шаг «проверка набора» не выполнен: {exc}.")
             self.log(f"  ! {self.warnings[-1]}")
             set_summary, set_scores, set_findings, scenarios = "", [], [], []
 
-        self.log("6/8 Верификация цитат (без ИИ)")
-        findings, rejected = self.verify(doc, index, req_findings + set_findings)
+        scen_findings = self._scenario_findings(scenarios, reqs)
+        if scen_findings:
+            self.log(f"  · из сценарного прогона: конфликтов и пробелов {len(scen_findings)}")
+
+        self.log("8/10 Верификация цитат (без ИИ)")
+        findings, rejected = self.verify(doc, index, known + set_findings + scen_findings)
         for f in rejected:
             f.critic_note = "отклонено верификатором: " + f.verification_note
+        # Сигналы правил без ИИ уровня «существенный» и выше идут к критику вместе с остальными:
+        # он отметит дубли с замечаниями модели.
+        for sig in signals:
+            if sig.severity in ("critical", "major"):
+                findings.append(sig.model_copy(deep=True))
         self.log(f"  · подтверждено цитатами: {len(findings)}, отклонено: {len(rejected)}")
 
-        self.log("7/8 Независимый критик")
+        self.log("9/10 Независимый критик")
         try:
-            findings, critic_rejected = self.critic(doc, findings)
+            evidence = {
+                "проверка_критериев_приёмки": [c.model_dump(include={"criterion_rid", "derived_result",
+                                               "stated_result", "verdict", "explanation"}) for c in ac_checks],
+                "сценарный_прогон": [sc.model_dump(include={"scenario", "per_rule", "outcome", "status"})
+                                    for sc in scenarios],
+            }
+            findings, critic_rejected = self.critic(doc, findings, json.dumps(evidence, ensure_ascii=False, indent=1))
         except LLMError as exc:
             self.warnings.append(f"Шаг «критик» не выполнен: {exc}. Замечания не прошли вторую проверку.")
             self.log(f"  ! {self.warnings[-1]}")
             critic_rejected = []
         rejected += critic_rejected
         self.log(f"  · осталось замечаний: {len(findings)}, отклонено критиком: {len(critic_rejected)}")
+
+        # Правило без ИИ: если оба независимых пересчёта показали, что критерий приёмки совпадает
+        # с требованиями, замечание «этот критерий противоречит требованиям» снимается.
+        acs_by_id = {r.rid for r in reqs if "приём" in r.kind.lower() or "прием" in r.kind.lower()}
+        guarded = []
+        for f in findings:
+            ac_ids = [x for x in f.requirement_ids if x in acs_by_id]
+            contradiction = f.criterion in ("CORRECT", "SET_CONSISTENT") or "противореч" in f.title.lower()
+            if contradiction and ac_ids and all(x in self.ac_all_match for x in ac_ids) and f.source != "rule":
+                f.critic_verdict = "rejected"
+                f.critic_note = ("снято правилом: два независимых пересчёта критерия приёмки "
+                                 f"{', '.join(ac_ids)} показали совпадение с требованиями")
+                rejected.append(f)
+            else:
+                guarded.append(f)
+        if len(guarded) != len(findings):
+            self.log(f"  · снято правилом пересчёта: {len(findings) - len(guarded)}")
+        findings = guarded
+
+        # Калибровка по шкале (methodology/severity.md): дефекты стиля API и окружений не выше «существенного».
+        for f in findings:
+            if f.severity == "critical" and (f.rule.startswith("API-") or f.rule in ("DOC-HYGIENE", "API-ENV")):
+                f.severity = "major"
+                f.critic_note = (f.critic_note + " " if f.critic_note else "") + "критичность ограничена шкалой: стиль API."
 
         findings.sort(key=lambda f: (SEVERITY_ORDER[f.severity], f.lines[0] if f.lines else 10**6))
         for i, f in enumerate(findings, 1):
@@ -410,7 +730,7 @@ class Auditor:
             s = sev_by_rid.get(a.rid, set())
             a.verdict = "blocker" if "critical" in s else "needs_fix" if s else "ok"
 
-        self.log("8/8 Вопросы, чек-лист и итог")
+        self.log("10/10 Вопросы, чек-лист и итог")
         try:
             questions, checklist, verdict = self.synthesize(doc, reqs, findings)
         except LLMError as exc:
@@ -448,6 +768,7 @@ class Auditor:
             passport=passport, requirements=reqs, assessments=sorted(assessments, key=lambda a: a.rid),
             findings=findings, rejected_findings=rejected, rule_signals=signals,
             set_summary=set_summary, set_scores=set_scores, scenarios=scenarios,
+            acceptance_checks=ac_checks, uncovered_requirements=uncovered, rule_checks=rule_checks,
             questions=questions, checklist=checklist, clarification_log=clar_log, verdict=verdict,
         )
         return result, doc

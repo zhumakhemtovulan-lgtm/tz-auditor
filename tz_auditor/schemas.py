@@ -46,6 +46,7 @@ class Finding(BaseModel):
     verification_note: str = ""
     critic_verdict: Literal["confirmed", "rejected", "unchecked"] = "unchecked"
     critic_note: str = ""
+    protected: bool = False  # жёсткое доказательство: критик не может отклонить, только дубль/критичность
 
 
 class CriterionScore(BaseModel):
@@ -108,9 +109,27 @@ class RunPassport(BaseModel):
 class Scenario(BaseModel):
     scenario: str
     rules_applied: list[str] = Field(default_factory=list)
+    per_rule: list[dict] = Field(default_factory=list)
     outcome: str = ""
     status: Literal["ok", "conflict", "gap"] = "ok"
     note: str = ""
+
+
+class AcceptanceCheck(BaseModel):
+    criterion_rid: str
+    steps: list[dict] = Field(default_factory=list)
+    derived_result: str = ""
+    stated_result: str = ""
+    verdict: Literal["match", "mismatch", "undetermined"] = "undetermined"
+    explanation: str = ""
+
+
+class RuleCheck(BaseModel):
+    code: str
+    status: Literal["ok", "violated", "missing", "n/a"] = "n/a"
+    explanation: str = ""
+    scenario: str = ""
+    requirement_ids: list[str] = Field(default_factory=list)
 
 
 class AuditResult(BaseModel):
@@ -123,6 +142,9 @@ class AuditResult(BaseModel):
     set_summary: str = ""
     set_scores: list[CriterionScore] = Field(default_factory=list)
     scenarios: list[Scenario] = Field(default_factory=list)
+    acceptance_checks: list[AcceptanceCheck] = Field(default_factory=list)
+    uncovered_requirements: list[str] = Field(default_factory=list)
+    rule_checks: list[RuleCheck] = Field(default_factory=list)
     questions: list[Question] = Field(default_factory=list)
     checklist: list[ChecklistItem] = Field(default_factory=list)
     clarification_log: list[dict] = Field(default_factory=list)

@@ -27,6 +27,8 @@ STATUS_SYM = {"ok": "✓", "issue": "✗", "n/a": "—"}
 VERDICT_RU = {"ok": "в порядке", "needs_fix": "исправить", "blocker": "блокер"}
 PRIO_RU = {"high": "Высокий", "medium": "Средний", "low": "Низкий"}
 SCEN_RU = {"ok": "без замечаний", "conflict": "КОНФЛИКТ", "gap": "пробел"}
+AC_RU = {"match": "совпадает", "mismatch": "РАСХОЖДЕНИЕ", "undetermined": "не выводится"}
+RC_RU = {"ok": "описано", "violated": "НАРУШЕНО", "missing": "не описано", "n/a": "не относится"}
 
 CATEGORY = [
     ("Противоречивые", {"SET_CONSISTENT", "CORRECT"}, {"FIN-CONFLICT", "API-STATUS", "API-CONTRACT"}),
@@ -96,7 +98,9 @@ class ReportWriter:
             out.append(f"- **Как исправить:** {f.recommendation}")
         if f.suggested_rewrite:
             out.append(f"- **Предлагаемая формулировка:** _{f.suggested_rewrite}_")
-        check = f"цитаты {f.verification_note}"
+        check = ("найдено правилом без ИИ; " if f.source == "rule" else "") + f"цитаты {f.verification_note}"
+        if f.protected and f.source != "rule":
+            check += "; подтверждено пересчётом"
         if f.critic_verdict == "confirmed":
             check += f"; критик: подтверждено ({f.critic_note})" if f.critic_note else "; критик: подтверждено"
         out.append(f"- **Проверка замечания:** {check}")
@@ -135,6 +139,28 @@ class ReportWriter:
               f"(критичных {sev['critical']}, существенных {sev['major']}, незначительных {sev['minor']}). "
               f"Начинать разработку: **{v.ready_for_development}**, тестирование: **{v.ready_for_testing}**. "
               f"Уточняющих вопросов к автору: **{len(r.questions)}**.", ""]
+
+        # Резюме для руководителя
+        L += ["## Резюме для руководителя", ""]
+        dev_txt = {"нет": "**нельзя**", "условно": "**можно с оговорками**", "да": "**можно**"}
+        L += [f"**Начинать разработку:** {dev_txt.get(v.ready_for_development, v.ready_for_development)}. "
+              f"**Начинать тестирование:** {dev_txt.get(v.ready_for_testing, v.ready_for_testing)}.", ""]
+        if v.summary:
+            L += [v.summary, ""]
+        top = [f for f in r.findings if f.severity == "critical"][:5] or r.findings[:5]
+        if top:
+            L += ["**Главные дефекты:**", ""]
+            for f in top:
+                L.append(f"- **{f.fid}** ({SEVERITY_RU[f.severity].lower()}, {self._loc(f.lines)}): {f.title}")
+            L.append("")
+        hq = [q for q in r.questions if q.priority == "high"][:5] or r.questions[:5]
+        if hq:
+            L += ["**Что нужно решить автору ТЗ:**", ""]
+            for q in hq:
+                L.append(f"- **{q.qid}.** {q.question}")
+            L.append("")
+        L += [f"Проверка заняла {p.duration_sec / 60:.1f} мин; найдено {len(r.findings)} дефектов в {len(r.requirements)} "
+              f"требованиях, каждый подтверждён цитатой с номером строки. Полный разбор — ниже.", ""]
 
         # 2. Нарезка
         L += ["## 2. Как агент нарезал требования", "",
@@ -201,6 +227,28 @@ class ReportWriter:
             L += ["### Замечания уровня набора", ""]
             for f in set_f:
                 L += self._finding_md(f)
+        if r.acceptance_checks:
+            L += ["### Проверка критериев приёмки исполнением", "",
+                  "Каждый критерий приёмки «исполнен» по правилам документа шаг за шагом; результат сравнён "
+                  "с ожидаемым в критерии.", "",
+                  "| Критерий | По требованиям получается | В критерии ожидается | Итог |",
+                  "| :--- | :--- | :--- | :--- |"]
+            for c in r.acceptance_checks:
+                L.append(f"| {_cell(self._req_ref([c.criterion_rid]))} | {_cell(c.derived_result)} | "
+                         f"{_cell(c.stated_result)} | **{AC_RU[c.verdict]}**. {_cell(c.explanation)} |")
+            L.append("")
+            if r.uncovered_requirements:
+                L += ["Функциональные требования без критериев приёмки: "
+                      + ", ".join(self._req_ref([x]) for x in r.uncovered_requirements) + ".", ""]
+        if r.rule_checks:
+            L += ["### Проход по предметным правилам (методика `methodology/domain_rules.md`)", "",
+                  "| Правило | Статус | Пояснение |", "| :--- | :--- | :--- |"]
+            order = {"violated": 0, "missing": 1, "ok": 2, "n/a": 3}
+            for c in sorted(r.rule_checks, key=lambda x: order[x.status]):
+                expl = c.explanation + (f" Сценарий: {c.scenario}" if c.scenario and c.status != "ok" else "")
+                st = f"**{RC_RU[c.status]}**" if c.status in ("violated", "missing") else RC_RU[c.status]
+                L.append(f"| `{c.code}` | {st} | {_cell(expl)} |")
+            L.append("")
         if r.scenarios:
             L += ["### Сценарный прогон", "",
                   "Агент «прогнал» пограничные сценарии через правила документа, чтобы найти конфликты и пробелы.", "",
@@ -208,6 +256,9 @@ class ReportWriter:
                   "| :--- | :--- | :--- | :--- | :--- |"]
             for i, s in enumerate(r.scenarios, 1):
                 note = f" {s.note}" if s.note else ""
+                if s.per_rule:
+                    note += " По пунктам: " + "; ".join(
+                        f"{x.get('rid', '')}: {x.get('result', '')}" for x in s.per_rule if isinstance(x, dict))
                 L.append(f"| {i} | {_cell(s.scenario)} | {_cell(self._req_ref(s.rules_applied))} | "
                          f"{_cell(s.outcome)} | **{SCEN_RU[s.status]}**.{_cell(note)} |")
             L.append("")

@@ -51,7 +51,7 @@ def _mk(code: str, criterion: str, severity: str, title: str, description: str,
     return Finding(
         scope="set", criterion=criterion, severity=severity, title=f"[{code}] {title}",
         description=description + more, quotes=quotes, lines=lines,
-        recommendation=recommendation, source="rule", verified=True,
+        recommendation=recommendation, source="rule", verified=True, protected=True,
         verification_note="найдено правилом по тексту документа", critic_verdict="unchecked",
     )
 

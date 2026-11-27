@@ -1,0 +1,29 @@
+{
+ "rules": [
+  {
+   "code": "FIN-CUTOFF",
+   "status": "violated",
+   "explanation": "Ф-2 и КП-2 по-разному",
+   "scenario": "покупка в конце месяца",
+   "quotes": [
+    "Месяц определяется по дате совершения покупки в Алматы."
+   ],
+   "requirement_ids": [
+    "R-02"
+   ],
+   "severity": "critical"
+  },
+  {
+   "code": "FIN-TZ",
+   "status": "ok",
+   "explanation": "Алматы",
+   "quotes": [
+    "по Алматы"
+   ]
+  },
+  {
+   "code": "FIN-ROUNDING",
+   "status": "n/a"
+  }
+ ]
+}
