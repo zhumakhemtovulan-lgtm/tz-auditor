@@ -44,7 +44,8 @@ def agent_version() -> str:
         commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=root,
                                 capture_output=True, text=True, timeout=5).stdout.strip()
         if commit:
-            dirty = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"], cwd=root,
+            dirty = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no", "--", ".",
+                                    ":(exclude)reports"], cwd=root,
                                    capture_output=True, text=True, timeout=5).stdout.strip()
             tag = subprocess.run(["git", "describe", "--tags", "--exact-match"], cwd=root,
                                  capture_output=True, text=True, timeout=5).stdout.strip()

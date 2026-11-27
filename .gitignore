@@ -15,7 +15,6 @@ venv/
 env/
 
 # Отчёты тестовых прогонов (финальный отчёт кладём в reports/ явно)
-reports/*.log
 !reports/README.md
 
 # ОС и редакторы
